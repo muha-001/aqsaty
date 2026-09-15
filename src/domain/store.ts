@@ -1,91 +1,29 @@
-import type { Contract, ContractStats, Database, Payment, ScheduleItem } from './types';
+import type { ActivityAction, Contract, ContractStats, Database, Payment, ScheduleItem } from './types';
 
 export const STORAGE_KEY = 'aqsaty_local_v2';
 export const PIN_KEY = 'aqsaty_pin_v2';
-
 const uid = (prefix: string) => `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
-
+export const createId = uid;
 export const today = () => new Date().toISOString().slice(0, 10);
 export const normalizePhone = (phone: string) => String(phone || '').replace(/[^0-9]/g, '').replace(/^00964/, '0').replace(/^964/, '0');
-export const whatsappPhone = (phone: string) => {
-  const normalized = normalizePhone(phone);
-  return normalized.startsWith('0') ? `964${normalized.slice(1)}` : normalized;
-};
+export const whatsappPhone = (phone: string) => { const normalized = normalizePhone(phone); return normalized.startsWith('0') ? `964${normalized.slice(1)}` : normalized; };
 export const money = (amount: number) => `${Number(amount || 0).toLocaleString('ar-IQ')} د.ع`;
 export const dateText = (date: string) => date ? new Date(`${date}T00:00:00`).toLocaleDateString('ar-IQ', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
-
-export const emptyDatabase = (): Database => ({ customers: [], products: [], contracts: [], payments: [] });
-
-export function ensureDatabase(): Database { return loadDatabase(); }
-
-export function loadDatabase(): Database {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '') as Database;
-  } catch {
-    return emptyDatabase();
-  }
-}
-
-export function saveDatabase(database: Database) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(database));
-}
-
+export const emptyDatabase = (): Database => ({ customers: [], products: [], contracts: [], payments: [], activities: [], settings: { shopName: 'aqsaty', whatsappTemplate: 'السلام عليكم {name}،\n\nنذكّركم بقسطكم لدى {shop}:\nالمنتج: {product}\nرقم العقد: {contract}\nالقسط رقم: {number} من {months}\nتاريخ الاستحقاق: {date}\nالمبلغ المتبقي لهذا القسط: {amount}\n\nشكرًا لتعاونكم.', reminderTemplate: '' } });
+export function loadDatabase(): Database { try { const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '') as Partial<Database>; const base = emptyDatabase(); const products = (raw.products || []).map((entry) => { const product = { ...entry } as Database['products'][number]; return { ...product, stock: product.stock ?? 0, serialNumbers: product.serialNumbers ?? [] }; }); const contracts = (raw.contracts || []).map((entry) => { const contract = { ...entry } as Database['contracts'][number]; return { ...contract, status: contract.status ?? 'نشط', updatedAt: contract.updatedAt ?? contract.createdAt }; }); return { ...base, ...raw, activities: raw.activities || [], settings: { ...base.settings, ...(raw.settings || {}) }, products, contracts };  } catch { return emptyDatabase(); } }
+export const ensureDatabase = loadDatabase;
+export const saveDatabase = (database: Database) => localStorage.setItem(STORAGE_KEY, JSON.stringify(database));
 export const getPin = () => localStorage.getItem(PIN_KEY) || '1234';
 export const setPin = (pin: string) => localStorage.setItem(PIN_KEY, pin);
-export const createId = uid;
-
-export function paidFor(database: Database, contract: Contract) {
-  return database.payments.filter((payment) => payment.contractId === contract.id).reduce((total, payment) => total + payment.amount, 0);
-}
-
-export function contractStats(database: Database, contract: Contract): ContractStats {
-  const paid = paidFor(database, contract);
-  const remaining = Math.max(0, contract.financedAmount - paid);
-  const completed = contract.schedule.filter((item) => item.paidAmount >= item.amount).length;
-  const overdue = contract.schedule.filter((item) => item.paidAmount < item.amount && item.dueDate < today()).length;
-  return { paid, remaining, completed, overdue, percent: contract.financedAmount ? Math.min(100, (paid / contract.financedAmount) * 100) : 0 };
-}
-
-export function createSchedule(amount: number, months: number, startDate: string): ScheduleItem[] {
-  const base = Math.floor(amount / months);
-  const remainder = amount - base * months;
-  return Array.from({ length: months }, (_, index) => {
-    const due = new Date(`${startDate}T00:00:00`);
-    due.setMonth(due.getMonth() + index);
-    return { id: uid('schedule'), number: index + 1, dueDate: due.toISOString().slice(0, 10), amount: base + (index === months - 1 ? remainder : 0), paidAmount: 0 };
-  });
-}
-
-export function customerByPhone(database: Database, phone: string) {
-  const normalized = normalizePhone(phone);
-  return database.customers.find((customer) => normalizePhone(customer.phone) === normalized);
-}
-
-export function statusFor(item: ScheduleItem): { label: string; tone: 'paid' | 'partial' | 'late' | 'due' } {
-  if (item.paidAmount >= item.amount) return { label: 'مدفوع', tone: 'paid' };
-  if (item.paidAmount > 0) return { label: 'جزئي', tone: 'partial' };
-  if (item.dueDate < today()) return { label: 'متأخر', tone: 'late' };
-  return { label: 'قادم', tone: 'due' };
-}
-
-export function addPayment(database: Database, contractId: string, scheduleId: string, payment: Omit<Payment, 'id' | 'contractId' | 'scheduleId'>) {
-  const contract = database.contracts.find((item) => item.id === contractId);
-  const schedule = contract?.schedule.find((item) => item.id === scheduleId);
-  if (!contract || !schedule) throw new Error('القسط غير موجود');
-  const remaining = schedule.amount - schedule.paidAmount;
-  if (payment.amount <= 0 || payment.amount > remaining) throw new Error('مبلغ الدفعة غير صحيح');
-  schedule.paidAmount += payment.amount;
-  database.payments.push({ ...payment, id: uid('payment'), contractId, scheduleId });
-}
-
-export function buildWhatsAppMessage(database: Database, contractId: string, scheduleId: string) {
-  const contract = database.contracts.find((item) => item.id === contractId);
-  const schedule = contract?.schedule.find((item) => item.id === scheduleId);
-  const customer = contract && database.customers.find((item) => item.id === contract.customerId);
-  if (!contract || !schedule || !customer) throw new Error('تعذر تجهيز الرسالة');
-  const remaining = schedule.amount - schedule.paidAmount;
-  return {
-    phone: whatsappPhone(customer.phone),
-    message: `السلام عليكم ${customer.name}،\n\nنذكّركم بقسطكم لدى aqsaty:\nالمنتج: ${contract.productName}\nرقم العقد: ${contract.number}\nالقسط رقم: ${schedule.number} من ${contract.months}\nتاريخ الاستحقاق: ${dateText(schedule.dueDate)}\nالمبلغ المتبقي لهذا القسط: ${money(remaining)}\n\nشكرًا لتعاونكم.`,
-  };
-}
+export function logActivity(database: Database, action: ActivityAction, entity: string, entityId: string, description: string) { database.activities.unshift({ id: uid('activity'), action, entity, entityId, description, createdAt: new Date().toISOString() }); database.activities = database.activities.slice(0, 500); }
+export function paidFor(database: Database, contract: Contract) { return database.payments.filter((p) => p.contractId === contract.id).reduce((sum, p) => sum + p.amount, 0); }
+export function contractStats(database: Database, contract: Contract): ContractStats { const paid = paidFor(database, contract); const remaining = Math.max(0, contract.financedAmount - paid); const completed = contract.schedule.filter((s) => s.paidAmount >= s.amount).length; const overdue = contract.schedule.filter((s) => s.paidAmount < s.amount && s.dueDate < today()).length; const nextDue = contract.schedule.find((s) => s.paidAmount < s.amount); return { paid, remaining, completed, overdue, percent: contract.financedAmount ? Math.min(100, paid / contract.financedAmount * 100) : 0, nextDue }; }
+export function createSchedule(amount: number, months: number, startDate: string): ScheduleItem[] { const base = Math.floor(amount / months); const remainder = amount - base * months; return Array.from({ length: months }, (_, i) => { const date = new Date(`${startDate}T00:00:00`); date.setMonth(date.getMonth() + i); return { id: uid('schedule'), number: i + 1, dueDate: date.toISOString().slice(0, 10), amount: base + (i === months - 1 ? remainder : 0), paidAmount: 0 }; }); }
+export function customerByPhone(database: Database, phone: string) { const normalized = normalizePhone(phone); return database.customers.find((c) => normalizePhone(c.phone) === normalized); }
+export function statusFor(item: ScheduleItem) { if (item.paidAmount >= item.amount) return { label: 'مدفوع', tone: 'paid' as const }; if (item.paidAmount > 0) return { label: 'جزئي', tone: 'partial' as const }; if (item.dueDate < today()) return { label: 'متأخر', tone: 'late' as const }; return { label: 'قادم', tone: 'due' as const }; }
+export function addPayment(database: Database, contractId: string, scheduleId: string, payment: Omit<Payment, 'id' | 'contractId' | 'scheduleId' | 'receiptNumber'>) { const contract = database.contracts.find((c) => c.id === contractId); const schedule = contract?.schedule.find((s) => s.id === scheduleId); if (!contract || !schedule) throw new Error('القسط غير موجود'); const remaining = schedule.amount - schedule.paidAmount; if (payment.amount <= 0 || payment.amount > remaining) throw new Error('مبلغ الدفعة غير صحيح'); schedule.paidAmount += payment.amount; const receiptNumber = `REC-${new Date().getFullYear()}-${String(database.payments.length + 1).padStart(5, '0')}`; database.payments.push({ ...payment, id: uid('payment'), contractId, scheduleId, receiptNumber }); contract.updatedAt = new Date().toISOString(); if (contract.schedule.every((s) => s.paidAmount >= s.amount)) contract.status = 'مكتمل'; else if (contract.schedule.some((s) => s.paidAmount < s.amount && s.dueDate < today())) contract.status = 'متأخر'; logActivity(database, 'دفعة', 'payment', receiptNumber, `تسجيل دفعة ${money(payment.amount)} للعقد ${contract.number}`); }
+export function rescheduleItem(database: Database, contractId: string, scheduleId: string, dueDate: string, amount?: number) { const contract = database.contracts.find((c) => c.id === contractId); const item = contract?.schedule.find((s) => s.id === scheduleId); if (!contract || !item || !dueDate) throw new Error('بيانات إعادة الجدولة غير صحيحة'); item.dueDate = dueDate; if (amount && amount > 0) item.amount = amount; contract.updatedAt = new Date().toISOString(); logActivity(database, 'إعادة جدولة', 'schedule', scheduleId, `إعادة جدولة القسط رقم ${item.number} للعقد ${contract.number}`); }
+export function buildWhatsAppMessage(database: Database, contractId: string, scheduleId?: string, fullStatement = false) { const contract = database.contracts.find((c) => c.id === contractId); const customer = contract && database.customers.find((c) => c.id === contract.customerId); if (!contract || !customer) throw new Error('تعذر تجهيز الرسالة'); const stats = contractStats(database, contract); const template = database.settings.whatsappTemplate || emptyDatabase().settings.whatsappTemplate; const item = scheduleId ? contract.schedule.find((s) => s.id === scheduleId) : stats.nextDue; const message = fullStatement ? `السلام عليكم ${customer.name}،\n\nهذا كشفكم لدى ${database.settings.shopName}:\nالمنتج: ${contract.productName}\nرقم العقد: ${contract.number}\nالمبلغ المسدد: ${money(stats.paid)}\nالمبلغ المتبقي: ${money(stats.remaining)}\nالأقساط المكتملة: ${stats.completed} من ${contract.months}\n${stats.nextDue ? `القسط القادم: ${dateText(stats.nextDue.dueDate)} — ${money(stats.nextDue.amount - stats.nextDue.paidAmount)}` : 'العقد مكتمل.'}\n\nشكرًا لتعاونكم.` : template.replace(/\{name\}/g, customer.name).replace(/\{shop\}/g, database.settings.shopName).replace(/\{product\}/g, contract.productName).replace(/\{contract\}/g, contract.number).replace(/\{number\}/g, String(item?.number || '')).replace(/\{months\}/g, String(contract.months)).replace(/\{date\}/g, item ? dateText(item.dueDate) : '').replace(/\{amount\}/g, item ? money(item.amount - item.paidAmount) : money(stats.remaining)); return { phone: whatsappPhone(customer.phone), message }; }
+const bufferOf = (value: Uint8Array) => value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength) as ArrayBuffer;
+export async function encryptBackup(database: Database, password: string) { const data = new TextEncoder().encode(JSON.stringify(database)); const salt = crypto.getRandomValues(new Uint8Array(16)); const iv = crypto.getRandomValues(new Uint8Array(12)); const keyMaterial = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']); const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: bufferOf(salt), iterations: 100000, hash: 'SHA-256' }, keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['encrypt']); const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: bufferOf(iv) }, key, data); const bytes = (input: ArrayBuffer) => btoa(String.fromCharCode(...new Uint8Array(input))); return JSON.stringify({ version: 1, salt: bytes(bufferOf(salt)), iv: bytes(bufferOf(iv)), data: bytes(cipher) }); }
+export async function decryptBackup(payload: string, password: string) { const parsed = JSON.parse(payload); const from = (value: string) => Uint8Array.from(atob(value), (c) => c.charCodeAt(0)); const salt = from(parsed.salt); const iv = from(parsed.iv); const keyMaterial = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']); const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: bufferOf(salt), iterations: 100000, hash: 'SHA-256' }, keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['decrypt']); const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: bufferOf(iv) }, key, bufferOf(from(parsed.data))); return JSON.parse(new TextDecoder().decode(plain)) as Database; }
