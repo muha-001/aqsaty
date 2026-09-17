@@ -4,6 +4,7 @@ import { ContractCard } from './components/ContractCard';
 import { addPayment, buildWhatsAppMessage, contractStats, createId, createSchedule, customerByPhone, dateText, decryptBackup, emptyDatabase, ensureDatabase, encryptBackup, hydrateDatabase, logActivity, money, normalizePhone, paidFor, rescheduleItem, saveDatabase, setSecurePin, today, verifyPin } from './domain/store';
 import { ensureSeedData } from './domain/seed';
 import type { Contract, ContractStatus, Database, PaymentMethod, Product, ProductIcon } from './domain/types';
+import { cloudSyncConfigured, pullCloudDatabase, pushCloudDatabase } from './domain/cloudSync';
 import './styles.css';
 
 const initial = () => ensureSeedData(ensureDatabase());
@@ -19,8 +20,8 @@ export default function App() {
   const [tab, setTab] = useState<'dashboard' | 'customers' | 'products' | 'reports' | 'backup'>('dashboard'); const [search, setSearch] = useState(''); const [statusFilter, setStatusFilter] = useState<'all' | ContractStatus>('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null); const [form, setForm] = useState<FormKind>(null); const [context, setContext] = useState<{ customerId?: string; contractId?: string; scheduleId?: string; productId?: string }>({}); const [toast, setToast] = useState(''); const [printPayload, setPrintPayload] = useState<PrintPayload>(null);
   const notify = (message: string) => { setToast(message); window.setTimeout(() => setToast(''), 3000); };
-  const persist = (next: Database, action?: Parameters<typeof logActivity>[1], entity = 'system', id = 'system', description = '') => { if (action) logActivity(next, action, entity, id, description); setDatabase({ ...next }); saveDatabase(next); };
-  useEffect(() => { let active = true; void hydrateDatabase().then((stored) => { if (!active) return; if (stored) setDatabase(stored); else saveDatabase(database); }).finally(() => { if (active) setStorageReady(true); }); return () => { active = false; }; }, []);
+  const persist = (next: Database, action?: Parameters<typeof logActivity>[1], entity = 'system', id = 'system', description = '') => { if (action) logActivity(next, action, entity, id, description); setDatabase({ ...next }); saveDatabase(next); void pushCloudDatabase(next).catch(() => notify('تم الحفظ محليًا؛ تعذرت المزامنة السحابية')); };
+  useEffect(() => { let active = true; void hydrateDatabase().then(async (stored) => { if (!active) return; const cloud = await pullCloudDatabase().catch(() => null); if (cloud) setDatabase(cloud); else if (stored) setDatabase(stored); else saveDatabase(database); }).finally(() => { if (active) setStorageReady(true); }); return () => { active = false; }; }, []);
   const lookup = customerByPhone(database, lookupPhone); const total = database.contracts.reduce((sum, c) => sum + c.financedAmount, 0); const paid = database.contracts.reduce((sum, c) => sum + paidFor(database, c), 0);
   const visibleCustomers = database.customers.filter((c) => !search || c.name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search));
   const due = database.contracts.flatMap((contract) => contract.schedule.filter((item) => item.paidAmount < item.amount && item.dueDate <= today()).map((schedule) => ({ contract, schedule })));
