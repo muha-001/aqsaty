@@ -4,15 +4,28 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   build: {
-    cssCodeSplit: false,        // ✅ كل CSS في ملف واحد (style.css)
+    // ✅ يفضل إزالة cssCodeSplit: false إذا لم تكن هناك حاجة ماسة له
+    // لأن Vite 8 قد يتعامل معه بشكل مختلف.
     minify: 'terser',
     terserOptions: {
-      compress: { drop_console: true, drop_debugger: true },
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
+        // ✅ استخدام الصيغة الدالية (Function Form) لـ manualChunks
+        // لأن الصيغة الكائنية (Object Form) لم تعد مدعومة في Vite 8
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            // إنشاء chunk منفصل لـ React و React-DOM
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'vendor';
+            }
+            // يمكنك إضافة مكتبات أخرى هنا بنفس الطريقة
+            // if (id.includes('lodash')) { return 'utils'; }
+          }
         },
       },
     },
