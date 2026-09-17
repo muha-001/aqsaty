@@ -10,6 +10,7 @@ type SupabaseClient = {
     getUser: () => Promise<{ data: { user: { id: string; email?: string } | null } }>;
     getSession: () => Promise<{ data: { session: SupabaseSession } }>;
     signInWithPassword: (credentials: { email: string; password: string }) => Promise<{ data: { user: { id: string; email?: string } | null }; error: Error | null }>;
+    signInWithOAuth: (options: { provider: 'github'; options: { redirectTo: string } }) => Promise<{ error: Error | null }>;
     signOut: () => Promise<{ error: Error | null }>;
   };
   from: (table: string) => {
@@ -53,6 +54,14 @@ export async function signInCloud(email: string, password: string): Promise<Clou
   const { data, error } = await client.auth.signInWithPassword({ email: email.trim(), password });
   if (error || !data.user) throw error || new Error('تعذر تسجيل الدخول السحابي');
   return data.user;
+}
+
+export async function signInWithGitHub(): Promise<void> {
+  const client = await getClient();
+  if (!client) throw new Error('المزامنة السحابية غير مهيأة');
+  const redirectTo = `${window.location.origin}${window.location.pathname}`;
+  const { error } = await client.auth.signInWithOAuth({ provider: 'github', options: { redirectTo } });
+  if (error) throw error;
 }
 
 export async function signOutCloud(): Promise<void> {
