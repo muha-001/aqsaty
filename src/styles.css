@@ -1572,3 +1572,70 @@ th { color: var(--navy); background: #faf9f6; }
   .installment-result::before,
   .eyebrow::before { animation: none !important; }
 }
+
+/* ============================================================
+   شاشة التحميل (Boot Loader) — تظهر قبل جاهزية React
+   ============================================================ */
+.boot-loader {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #0a1a2e, #10253f, #173b61);
+  background-size: 200% 200%;
+  animation: aqsaty-gradient-shift 8s var(--ease-in-out) infinite;
+  z-index: 9999;
+  color: #fff;
+  transition: opacity 400ms var(--ease-out), visibility 400ms var(--ease-out);
+}
+body.is-ready .boot-loader {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.boot-loader-inner {
+  text-align: center;
+  display: grid;
+  gap: 20px;
+  justify-items: center;
+}
+
+.boot-logo {
+  font-size: 40px;
+  font-weight: 900;
+  color: var(--gold-2);
+  letter-spacing: 2px;
+  background: linear-gradient(120deg, var(--gold-2), var(--gold-3), var(--gold-2));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: aqsaty-gradient-shift 4s var(--ease-in-out) infinite;
+}
+
+.boot-spinner {
+  display: flex;
+  gap: 10px;
+}
+.boot-spinner > div {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: aqsaty-bounce 1.4s var(--ease-in-out) infinite both;
+}
+.boot-spinner > div:nth-child(1) { animation-delay: -0.32s; }
+.boot-spinner > div:nth-child(2) { animation-delay: -0.16s; }
+.boot-spinner > div:nth-child(3) { animation-delay: 0; }
+
+@keyframes aqsaty-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+  40%           { transform: scale(1.1); opacity: 1; }
+}
+
+.boot-text {
+  color: #d9e4ef;
+  font-size: 13px;
+  margin: 0;
+  opacity: 0.85;
+}
