@@ -1,14 +1,188 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
   <head>
+    <!-- ============================================================
+         الأساسيات
+         ============================================================ -->
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    
+    <!-- ============================================================
+         معلومات الصفحة الأساسية (SEO)
+         ============================================================ -->
+    <title>أقساطي | بيع بالتقسيط بدون فوائد — أجهزة وسلع بأقساط ميسّرة</title>
+    <meta name="description" content="أقساطي — منصة بيع بالتقسيط للأجهزة الإلكترونية والسلع بأقساط ميسّرة بدون فوائد. تصفّح، اختر، وقسّط بكل سهولة." />
+    <meta name="keywords" content="تقسيط, بيع بالتقسيط, أقساط, أجهزة بالتقسيط, جوالات بالتقسيط, تسهيلات, بدون فوائد" />
+    <meta name="author" content="Aqsaty" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://aqsaty.com/" />
+    
+    <!-- ============================================================
+         الألوان والثيم (يظهر في شريط المتصفح على الجوال)
+         ============================================================ -->
     <meta name="theme-color" content="#10253f" />
-    <meta name="description" content="aqsaty — إدارة الأقساط محليًا بدون اشتراكات أو تخزين سحابي" />
-    <title>aqsaty | إدارة الأقساط</title>
+    <meta name="msapplication-TileColor" content="#10253f" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="أقساطي" />
+    <meta name="format-detection" content="telephone=no" />
+    
+    <!-- ============================================================
+         Open Graph (فيسبوك، واتساب، لينكدإن)
+         ============================================================ -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ar_SA" />
+    <meta property="og:title" content="أقساطي | بيع بالتقسيط بدون فوائد" />
+    <meta property="og:description" content="أجهزة وسلع بأقساط ميسّرة. تصفّح، اختر، وقسّط بكل سهولة." />
+    <meta property="og:url" content="https://aqsaty.com/" />
+    <meta property="og:site_name" content="أقساطي" />
+    <meta property="og:image" content="/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="أقساطي — بيع بالتقسيط" />
+    
+    <!-- ============================================================
+         Twitter Card
+         ============================================================ -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="أقساطي | بيع بالتقسيط بدون فوائد" />
+    <meta name="twitter:description" content="أجهزة وسلع بأقساط ميسّرة." />
+    <meta name="twitter:image" content="/og-image.jpg" />
+    
+    <!-- ============================================================
+         الأيقونات (Favicons)
+         ============================================================ -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#c9a45b" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    
+    <!-- ============================================================
+         تسريع تحميل الموارد الخارجية (Performance hints)
+         ============================================================ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    
+    <!-- ============================================================
+         الخطوط — تحميل محسّن مع font-display: swap
+         (يتم تحميل خط عربي احترافي بجانب Tahoma)
+         ============================================================ -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap"
+      />
+    </noscript>
+    
+    <!-- ============================================================
+         ملف الأنماط الرئيسي
+         ✅ الطريقة ① — ربط مباشر (استخدم هذا إذا لم تستورد في main.tsx)
+         ============================================================ -->
+    <link rel="stylesheet" href="/src/style.css" />
+    
+    <!-- ============================================================
+         حماية ضد FOUC (وميض المحتوى قبل تطبيق CSS)
+         ============================================================ -->
+    <style>
+      html { background: #f7f4ed; }
+      body { margin: 0; visibility: hidden; }
+      body.is-ready { visibility: visible; }
+    </style>
   </head>
+
   <body>
-    <div id="root"></div>
+    <!-- ============================================================
+         جذر تطبيق React
+         ============================================================ -->
+    <div id="root">
+      <!--
+        شاشة تحميل احترافية تظهر أثناء تحميل React
+        يتم استبدالها تلقائياً عند جاهزية التطبيق
+      -->
+      <div class="boot-loader">
+        <div class="boot-loader-inner">
+          <div class="boot-logo">قسّط</div>
+          <div class="boot-spinner">
+            <div></div><div></div><div></div>
+          </div>
+          <p class="boot-text">جارٍ تجهيز تجربة التقسيط…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         كود JavaScript المطلوب لتشغيل حركات Scroll Reveal
+         ============================================================ -->
+    <script>
+      /* ------------------------------------------------------------
+         1) إزالة شاشة التحميل بعد جاهزية الصفحة
+         ------------------------------------------------------------ */
+      window.addEventListener('load', () => {
+        document.body.classList.add('is-ready');
+      });
+
+      /* ------------------------------------------------------------
+         2) Intersection Observer — إظهار العناصر عند التمرير إليها
+         يعمل على أي عنصر يحمل الصنف reveal-item
+         ------------------------------------------------------------ */
+      (function initScrollReveal() {
+        const run = () => {
+          const items = document.querySelectorAll('.reveal-item');
+          if (!items.length) return;
+
+          const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if (prefersReduced || !('IntersectionObserver' in window)) {
+            items.forEach((el) => el.classList.add('is-visible'));
+            return;
+          }
+
+          const observer = new IntersectionObserver(
+            (entries, obs) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add('is-visible');
+                  obs.unobserve(entry.target);
+                }
+              });
+            },
+            {
+              threshold: 0.12,
+              rootMargin: '0px 0px -60px 0px',
+            }
+          );
+
+          items.forEach((el) => observer.observe(el));
+        };
+
+        // تنفيذ بعد تحميل الصفحة، مع إعادة المحاولة عند إضافة عناصر جديدة (React)
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', run);
+        } else {
+          run();
+        }
+
+        // إعادة الفحص عند تغيير DOM (مفيد لتطبيقات React)
+        const mo = new MutationObserver(() => {
+          const items = document.querySelectorAll('.reveal-item:not(.is-visible)');
+          if (items.length) run();
+        });
+        mo.observe(document.body, { childList: true, subtree: true });
+      })();
+    </script>
+
+    <!-- ============================================================
+         نقطة دخول تطبيق React (Vite)
+         ============================================================ -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
