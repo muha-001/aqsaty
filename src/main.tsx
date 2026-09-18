@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 
 // ✅ استيراد ملف الأنماط الرئيسي
-import './style.css';
+import './styles.css';
 
 // (اختياري) إذا كنت تستخدم Tailwind أو أنماط إضافية
 // import './index.css';

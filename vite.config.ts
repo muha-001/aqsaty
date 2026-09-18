@@ -6,13 +6,6 @@ export default defineConfig({
   build: {
     // ✅ يفضل إزالة cssCodeSplit: false إذا لم تكن هناك حاجة ماسة له
     // لأن Vite 8 قد يتعامل معه بشكل مختلف.
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
     rollupOptions: {
       output: {
         // ✅ استخدام الصيغة الدالية (Function Form) لـ manualChunks
