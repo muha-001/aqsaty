@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  base: '/aqsaty/',
   plugins: [react()],
   build: {
     // ✅ يفضل إزالة cssCodeSplit: false إذا لم تكن هناك حاجة ماسة له
