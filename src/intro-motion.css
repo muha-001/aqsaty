@@ -1,0 +1,46 @@
+/* Motion layer: deliberately scoped so it cannot alter storage or business logic. */
+.app-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #fff;
+  background: radial-gradient(circle at 50% 42%, #204e79 0%, #10253f 42%, #071321 100%);
+  transition: opacity 420ms cubic-bezier(.22,1,.36,1), visibility 420ms;
+}
+.app-intro.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.intro-content { position: relative; z-index: 2; display: grid; justify-items: center; gap: 4px; animation: intro-content-in 760ms cubic-bezier(.22,1,.36,1) both; }
+.intro-mark { color: #ecd49a; font-size: 42px; line-height: 1; animation: intro-mark-in 700ms cubic-bezier(.34,1.56,.64,1) both; }
+.intro-word { color: #fff; font-size: clamp(42px, 8vw, 70px); font-weight: 900; letter-spacing: .08em; line-height: 1; }
+.intro-arabic { color: #ecd49a; font-size: 19px; letter-spacing: .32em; margin-inline-start: .32em; }
+.intro-line { width: 180px; height: 1px; margin-top: 17px; background: rgba(236,212,154,.22); overflow: hidden; }
+.intro-line span { display: block; height: 100%; background: #ecd49a; transform-origin: right; animation: intro-line 900ms 260ms cubic-bezier(.22,1,.36,1) both; }
+.intro-content p { margin: 13px 0 0; color: #d9e4ef; font-size: 13px; opacity: .82; }
+.intro-orbit { position: absolute; width: 48vw; aspect-ratio: 1; border: 1px solid rgba(236,212,154,.13); border-radius: 50%; animation: intro-orbit 12s linear infinite; }
+.orbit-one { transform: rotate(28deg) scaleY(.45); }
+.orbit-two { width: 70vw; transform: rotate(-42deg) scaleY(.3); animation-direction: reverse; }
+@keyframes intro-content-in { from { opacity: 0; transform: translate3d(0,18px,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
+@keyframes intro-mark-in { from { opacity: 0; transform: rotate(-45deg) scale(.7); } to { opacity: 1; transform: rotate(0) scale(1); } }
+@keyframes intro-line { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes intro-orbit { to { transform: rotate(388deg) scaleY(.45); } }
+
+/* Clear, immediate press feedback on touch and mouse. */
+.btn, .navlinks button, .side button, button.close { position: relative; overflow: hidden; isolation: isolate; transition: transform 160ms cubic-bezier(.22,1,.36,1), box-shadow 180ms cubic-bezier(.22,1,.36,1), background-color 180ms ease-out, border-color 180ms ease-out; }
+.btn::after, .navlinks button::after, .side button::after { content: ""; position: absolute; inset: 50%; z-index: -1; width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.35); opacity: 0; transform: translate(-50%,-50%) scale(1); pointer-events: none; }
+.btn:active, .navlinks button:active, .side button:active, button.close:active { transform: scale(.965) translateY(1px); }
+.btn:active::after, .navlinks button:active::after, .side button:active::after { animation: click-ripple 420ms ease-out; }
+@keyframes click-ripple { 0% { opacity: .55; transform: translate(-50%,-50%) scale(1); } 100% { opacity: 0; transform: translate(-50%,-50%) scale(24); } }
+@media (prefers-reduced-motion: reduce) { .app-intro, .intro-content, .intro-mark, .intro-line span, .intro-orbit { animation: none !important; transition: none !important; } .app-intro { opacity: 0; visibility: hidden; } .btn:active, .navlinks button:active, .side button:active, button.close:active { transform: none; } }
+@media (max-width: 600px) { .intro-orbit { width: 100vw; } .orbit-two { width: 145vw; } }
+
+/* Stagger the first screen so the redesign is visible immediately after intro. */
+.hero-grid > div:first-child { animation: aqsaty-hero-enter 700ms 120ms cubic-bezier(.22,1,.36,1) both; }
+.hero-card { animation: aqsaty-hero-enter 700ms 240ms cubic-bezier(.22,1,.36,1) both; }
+.section-head, .lookup, .steps, .products-grid { animation: aqsaty-fade-in 520ms 360ms cubic-bezier(.22,1,.36,1) both; }
+@media (prefers-reduced-motion: reduce) { .hero-grid > div:first-child, .hero-card, .section-head, .lookup, .steps, .products-grid { animation: none !important; } }
+
+/* Ensure the app intro sits above the legacy static loader. */
+.boot-loader { z-index: 9999; }
+.app-intro { z-index: 10000; }
