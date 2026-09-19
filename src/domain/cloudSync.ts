@@ -32,6 +32,7 @@ function configFromEnv(): CloudSyncConfig | null {
 }
 
 let clientPromise: Promise<SupabaseClient | null> | null = null;
+let lastPulledRevision: number | null = null;
 async function getClient(): Promise<SupabaseClient | null> {
   if (!configFromEnv()) return null;
   if (!clientPromise) {
@@ -73,6 +74,7 @@ export async function signOutCloud(): Promise<void> {
   if (!client) return;
   const { error } = await client.auth.signOut();
   if (error) throw error;
+  lastPulledRevision = null;
 }
 
 export async function pullCloudDatabase(): Promise<Database | null> {
@@ -83,6 +85,7 @@ export async function pullCloudDatabase(): Promise<Database | null> {
   if (!user) return null;
   const { data, error } = await client.from('aqsaty_records').select('id,revision,payload').eq('workspace_id', config.workspaceId).maybeSingle();
   if (error) throw error;
+  lastPulledRevision = data?.revision ?? null;
   return data?.payload ?? null;
 }
 
@@ -92,6 +95,10 @@ export async function pushCloudDatabase(database: Database): Promise<void> {
   if (!config || !client || !navigator.onLine) return;
   const { data: userData } = await client.auth.getUser();
   if (!userData.user) return;
+  const { data: current, error: readError } = await client.from('aqsaty_records').select('id,revision,payload').eq('workspace_id', config.workspaceId).maybeSingle();
+  if (readError) throw readError;
+  if (lastPulledRevision !== null && current && current.revision !== lastPulledRevision) throw new Error('حدث تعارض: تغيّرت البيانات على جهاز آخر. اسحب آخر نسخة ثم راجع التعديلات قبل الحفظ.');
   const { error } = await client.from('aqsaty_records').upsert({ workspace_id: config.workspaceId, payload: cloudPayload(database), updated_by: userData.user.id }, { onConflict: 'workspace_id' });
   if (error) throw error;
+  lastPulledRevision = current ? current.revision + 1 : 1;
 }
