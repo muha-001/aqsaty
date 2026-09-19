@@ -33,6 +33,8 @@ function configFromEnv(): CloudSyncConfig | null {
 
 let clientPromise: Promise<SupabaseClient | null> | null = null;
 let lastPulledRevision: number | null = null;
+let cloudPushQueue: Promise<unknown> = Promise.resolve();
+export function serializeCloudPush<T>(operation: () => Promise<T>): Promise<T> { const next = cloudPushQueue.then(operation); cloudPushQueue = next.catch(() => undefined); return next; }
 async function getClient(): Promise<SupabaseClient | null> {
   if (!configFromEnv()) return null;
   if (!clientPromise) {
@@ -89,7 +91,7 @@ export async function pullCloudDatabase(): Promise<Database | null> {
   return data?.payload ?? null;
 }
 
-export async function pushCloudDatabase(database: Database): Promise<void> {
+async function pushCloudDatabaseNow(database: Database): Promise<void> {
   const config = configFromEnv();
   const client = await getClient();
   if (!config || !client || !navigator.onLine) return;
@@ -102,3 +104,5 @@ export async function pushCloudDatabase(database: Database): Promise<void> {
   if (error) throw error;
   lastPulledRevision = current ? current.revision + 1 : 1;
 }
+
+export function pushCloudDatabase(database: Database): Promise<void> { return serializeCloudPush(() => pushCloudDatabaseNow(database)); }
