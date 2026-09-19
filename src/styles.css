@@ -1725,3 +1725,44 @@ body {
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
   .reveal-item { opacity: 1; transform: none; }
 }
+
+/* Official contract and receipt documents */
+.official-document { max-width: 820px; margin: 0 auto; padding: 28px; color: #172333; background: #fff; border: 1px solid #e5e0d6; border-radius: 16px; }
+.document-header { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 18px; padding-bottom: 18px; border-bottom: 3px solid var(--gold); }
+.document-brand { display: flex; align-items: center; gap: 10px; }
+.document-brand strong { display: block; color: var(--navy); font-size: 22px; }
+.document-brand small { display: block; color: var(--muted); font-size: 11px; }
+.document-mark { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; color: var(--gold-2); background: var(--navy); font-size: 26px; }
+.document-title { text-align: center; }
+.document-title h1 { margin: 0; color: var(--navy); font-size: 21px; }
+.document-title span { color: var(--muted); font-size: 11px; }
+.document-qr { width: 86px; text-align: center; color: var(--muted); font-size: 9px; }
+.document-qr img, .qr-placeholder { width: 74px; height: 74px; margin: auto; display: block; }
+.qr-placeholder { display: grid; place-items: center; background: #f0ece4; color: var(--navy); font-weight: 800; }
+.document-meta { display: flex; flex-wrap: wrap; gap: 12px 28px; padding: 14px 0; color: var(--muted); font-size: 12px; }
+.document-section { margin-top: 18px; }
+.document-section h2 { margin: 0 0 10px; padding-bottom: 6px; color: var(--navy); font-size: 15px; border-bottom: 1px solid var(--line); }
+.document-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px 18px; font-size: 12px; }
+.document-grid b { color: var(--navy); }
+.document-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+.document-table th, .document-table td { padding: 8px 6px; border: 1px solid #d9d5cc; text-align: right; }
+.document-table th { color: var(--navy); background: #f5f1e8; }
+.document-terms, .receipt-thanks { margin-top: 22px; padding: 12px; border: 1px solid #ecd6a1; border-radius: 10px; color: #725316; background: #fff8e7; font-size: 11px; }
+.signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-top: 42px; text-align: center; font-size: 12px; }
+.signature-grid span { display: block; height: 42px; margin-top: 18px; border-bottom: 1px solid #657182; }
+.receipt-number { margin: 18px 0; color: var(--navy); font-size: 13px; text-align: center; }
+.amount-emphasis { color: var(--green) !important; font-size: 16px; }
+.customer-statement-print > .official-document { margin-top: 24px; page-break-before: always; }
+
+@media print {
+  .official-document { max-width: none; border: 0; border-radius: 0; padding: 0; }
+  .customer-statement-print > .official-document:first-of-type { page-break-before: avoid; }
+  .document-table { page-break-inside: avoid; }
+}
+@media (max-width: 600px) {
+  .official-document { padding: 18px; }
+  .document-header { grid-template-columns: 1fr auto; }
+  .document-title { grid-column: 1 / -1; grid-row: 2; }
+  .document-grid { grid-template-columns: 1fr; }
+  .signature-grid { gap: 24px; }
+}
