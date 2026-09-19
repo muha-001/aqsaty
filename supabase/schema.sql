@@ -151,6 +151,29 @@ $$;
 
 grant execute on function public.aqsaty_public_lookup_phone(uuid, text) to anon, authenticated;
 
+create or replace function public.aqsaty_public_verify_contract(target_workspace uuid, target_number text)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'number', contract->>'number',
+    'productName', contract->>'productName',
+    'status', contract->>'status',
+    'financedAmount', (contract->>'financedAmount')::numeric,
+    'months', (contract->>'months')::integer,
+    'startDate', contract->>'startDate'
+  )
+  from public.aqsaty_records record
+  cross join lateral jsonb_array_elements(coalesce(record.payload->'contracts', '[]'::jsonb)) contract
+  where record.workspace_id = target_workspace and contract->>'number' = target_number
+  limit 1;
+$$;
+
+grant execute on function public.aqsaty_public_verify_contract(uuid, text) to anon, authenticated;
+
 create or replace function public.aqsaty_touch_updated_at()
 returns trigger language plpgsql as $$
 begin

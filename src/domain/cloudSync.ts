@@ -4,6 +4,7 @@ export type CloudSyncConfig = { url: string; anonKey: string; workspaceId: strin
 export type CloudSyncStatus = 'disabled' | 'offline' | 'syncing' | 'synced' | 'error';
 export type CloudUser = { id: string; email?: string };
 export type PublicLookup = { customerName: string; contracts: Array<{ number: string; productName: string; status: string; financedAmount: number; schedule: Array<{ number: number; dueDate: string; amount: number; paidAmount: number }> }> };
+export type PublicContractVerification = { number: string; productName: string; status: string; financedAmount: number; months: number; startDate: string };
 
 function cloudPayload(database: Database): Database {
   return { ...database, products: database.products.map((product) => ({ ...product, images: [] })) };
@@ -55,6 +56,7 @@ export function cloudSyncConfigured() { return Boolean(configFromEnv()); }
 
 export async function pullPublicProducts(): Promise<Database['products']> { const config = configFromEnv(); const client = await getClient(); if (!config || !client || !navigator.onLine) return []; const { data, error } = await client.rpc('aqsaty_public_products', { target_workspace: config.workspaceId }); if (error || !Array.isArray(data)) return []; return data as Database['products']; }
 export async function lookupPublicCustomer(phone: string): Promise<PublicLookup | null> { const config = configFromEnv(); const client = await getClient(); if (!config || !client || !navigator.onLine) return null; const { data, error } = await client.rpc('aqsaty_public_lookup_phone', { target_workspace: config.workspaceId, target_phone: phone }); return error || !data ? null : data as PublicLookup; }
+export async function verifyPublicContract(contractNumber: string): Promise<PublicContractVerification | null> { const config = configFromEnv(); const client = await getClient(); if (!config || !client || !navigator.onLine) return null; const { data, error } = await client.rpc('aqsaty_public_verify_contract', { target_workspace: config.workspaceId, target_number: contractNumber }); return error || !data ? null : data as PublicContractVerification; }
 
 export async function getCloudUser(): Promise<CloudUser | null> {
   const client = await getClient();
