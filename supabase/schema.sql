@@ -84,6 +84,36 @@ on public.aqsaty_records for update
 using (public.aqsaty_can_write(workspace_id))
 with check (public.aqsaty_can_write(workspace_id) and updated_by = auth.uid());
 
+create or replace function public.aqsaty_public_products(target_workspace uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'id', product->>'id',
+    'name', product->>'name',
+    'category', product->>'category',
+    'description', product->>'description',
+    'price', (product->>'price')::numeric,
+    'months', product->'months',
+    'icon', product->>'icon',
+    'active', coalesce((product->>'active')::boolean, true),
+    'stock', coalesce((product->>'stock')::integer, 0),
+    'condition', product->>'condition',
+    'images', '[]'::jsonb,
+    'specs', product->>'specs',
+    'warranty', product->>'warranty'
+  ) order by product->>'name'), '[]'::jsonb)
+  from public.aqsaty_records record
+  cross join lateral jsonb_array_elements(coalesce(record.payload->'products', '[]'::jsonb)) product
+  where record.workspace_id = target_workspace
+    and coalesce((product->>'active')::boolean, true) = true;
+$$;
+
+grant execute on function public.aqsaty_public_products(uuid) to anon, authenticated;
+
 create or replace function public.aqsaty_touch_updated_at()
 returns trigger language plpgsql as $$
 begin
