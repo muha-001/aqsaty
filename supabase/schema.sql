@@ -114,6 +114,43 @@ $$;
 
 grant execute on function public.aqsaty_public_products(uuid) to anon, authenticated;
 
+create or replace function public.aqsaty_public_lookup_phone(target_workspace uuid, target_phone text)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  with matched_customer as (
+    select customer
+    from public.aqsaty_records record
+    cross join lateral jsonb_array_elements(coalesce(record.payload->'customers', '[]'::jsonb)) customer
+    where record.workspace_id = target_workspace
+      and regexp_replace(regexp_replace(coalesce(customer->>'phone', ''), '[^0-9]', '', 'g'), '^00964|^964', '0')
+        = regexp_replace(regexp_replace(coalesce(target_phone, ''), '[^0-9]', '', 'g'), '^00964|^964', '0')
+    limit 1
+  ),
+  customer_contracts as (
+    select contract
+    from public.aqsaty_records record
+    cross join lateral jsonb_array_elements(coalesce(record.payload->'contracts', '[]'::jsonb)) contract
+    where record.workspace_id = target_workspace
+      and contract->>'customerId' = (select customer->>'id' from matched_customer)
+  )
+  select case when exists (select 1 from matched_customer) then jsonb_build_object(
+    'customerName', (select customer->>'name' from matched_customer),
+    'contracts', coalesce((select jsonb_agg(jsonb_build_object(
+      'number', contract->>'number',
+      'productName', contract->>'productName',
+      'status', contract->>'status',
+      'financedAmount', (contract->>'financedAmount')::numeric,
+      'schedule', contract->'schedule'
+    ) order by contract->>'createdAt' desc) from customer_contracts), '[]'::jsonb)
+  ) else null end;
+$$;
+
+grant execute on function public.aqsaty_public_lookup_phone(uuid, text) to anon, authenticated;
+
 create or replace function public.aqsaty_touch_updated_at()
 returns trigger language plpgsql as $$
 begin

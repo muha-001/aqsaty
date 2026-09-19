@@ -3,6 +3,7 @@ import type { Database } from './types';
 export type CloudSyncConfig = { url: string; anonKey: string; workspaceId: string };
 export type CloudSyncStatus = 'disabled' | 'offline' | 'syncing' | 'synced' | 'error';
 export type CloudUser = { id: string; email?: string };
+export type PublicLookup = { customerName: string; contracts: Array<{ number: string; productName: string; status: string; financedAmount: number; schedule: Array<{ number: number; dueDate: string; amount: number; paidAmount: number }> }> };
 
 function cloudPayload(database: Database): Database {
   return { ...database, products: database.products.map((product) => ({ ...product, images: [] })) };
@@ -53,6 +54,7 @@ async function getClient(): Promise<SupabaseClient | null> {
 export function cloudSyncConfigured() { return Boolean(configFromEnv()); }
 
 export async function pullPublicProducts(): Promise<Database['products']> { const config = configFromEnv(); const client = await getClient(); if (!config || !client || !navigator.onLine) return []; const { data, error } = await client.rpc('aqsaty_public_products', { target_workspace: config.workspaceId }); if (error || !Array.isArray(data)) return []; return data as Database['products']; }
+export async function lookupPublicCustomer(phone: string): Promise<PublicLookup | null> { const config = configFromEnv(); const client = await getClient(); if (!config || !client || !navigator.onLine) return null; const { data, error } = await client.rpc('aqsaty_public_lookup_phone', { target_workspace: config.workspaceId, target_phone: phone }); return error || !data ? null : data as PublicLookup; }
 
 export async function getCloudUser(): Promise<CloudUser | null> {
   const client = await getClient();
