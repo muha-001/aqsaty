@@ -4,6 +4,10 @@ export type CloudSyncConfig = { url: string; anonKey: string; workspaceId: strin
 export type CloudSyncStatus = 'disabled' | 'offline' | 'syncing' | 'synced' | 'error';
 export type CloudUser = { id: string; email?: string };
 
+function cloudPayload(database: Database): Database {
+  return { ...database, products: database.products.map((product) => ({ ...product, images: [] })) };
+}
+
 type SupabaseSession = { user: { id: string; email?: string } } | null;
 type SupabaseClient = {
   auth: {
@@ -88,6 +92,6 @@ export async function pushCloudDatabase(database: Database): Promise<void> {
   if (!config || !client || !navigator.onLine) return;
   const { data: userData } = await client.auth.getUser();
   if (!userData.user) return;
-  const { error } = await client.from('aqsaty_records').upsert({ workspace_id: config.workspaceId, payload: database, updated_by: userData.user.id }, { onConflict: 'workspace_id' });
+  const { error } = await client.from('aqsaty_records').upsert({ workspace_id: config.workspaceId, payload: cloudPayload(database), updated_by: userData.user.id }, { onConflict: 'workspace_id' });
   if (error) throw error;
 }
