@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addPayment, contractStats, createSchedule, emptyDatabase, rescheduleItem } from './store';
+import { addPayment, contractStats, createSchedule, emptyDatabase, rescheduleItem, statusFor } from './store';
 import type { Contract } from './types';
 
 const contract = (overrides: Partial<Contract> = {}): Contract => ({
@@ -51,6 +51,11 @@ describe('installment domain rules', () => {
       method: 'نقدي',
       date: '2026-01-01',
     })).toThrow('مبلغ الدفعة غير صحيح');
+  });
+
+  it('labels an installment due today as overdue in the schedule table', () => {
+    const current = new Date().toISOString().slice(0, 10);
+    expect(statusFor({ id: 'schedule_2', number: 1, dueDate: current, amount: 500, paidAmount: 0 }).label).toBe('متأخر');
   });
 
   it('rescheduling an amount preserves the contract financed total', () => {
