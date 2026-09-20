@@ -1,0 +1,11 @@
+export const SYNC_TELEMETRY_KEY = 'aqsaty_sync_telemetry_v1';
+const MAX_EVENTS = 100;
+export type SyncTelemetryEvent = { kind: 'success' | 'failure' | 'queued' | 'connection'; at: number; payloadBytes?: number; attempts?: number; reason?: string; online: boolean };
+export type SyncTelemetrySummary = { lastError: string; lastPayloadBytes: number; retryAttempts: number; lastConnectionAt: number | null; lastEventAt: number | null; failures: number; queued: number; successes: number };
+type StorageLike = Pick<Storage, 'getItem' | 'setItem'> | Map<string, string>;
+function getValue(storage: StorageLike) { return storage instanceof Map ? storage.get(SYNC_TELEMETRY_KEY) : storage.getItem(SYNC_TELEMETRY_KEY); }
+function setValue(storage: StorageLike, value: string) { if (storage instanceof Map) storage.set(SYNC_TELEMETRY_KEY, value); else storage.setItem(SYNC_TELEMETRY_KEY, value); }
+export function readSyncTelemetry(storage: StorageLike = localStorage): SyncTelemetryEvent[] { try { const events = JSON.parse(getValue(storage) || '[]'); return Array.isArray(events) ? events : []; } catch { return []; } }
+export function recordSyncEvent(event: SyncTelemetryEvent, storage: StorageLike = localStorage) { setValue(storage, JSON.stringify([...readSyncTelemetry(storage), event].slice(-MAX_EVENTS))); }
+export function summarizeSyncTelemetry(storage: StorageLike = localStorage): SyncTelemetrySummary { const events = readSyncTelemetry(storage); const latest = events.length ? events[events.length - 1] : undefined; const latestFailure = [...events].reverse().find((event) => event.kind === 'failure'); const latestPayload = [...events].reverse().find((event) => event.payloadBytes !== undefined); return { lastError: latestFailure?.reason || 'لا توجد أخطاء مسجلة', lastPayloadBytes: latestPayload?.payloadBytes || 0, retryAttempts: latestFailure?.attempts || 0, lastConnectionAt: latest?.at || null, lastEventAt: latest?.at || null, failures: events.filter((event) => event.kind === 'failure').length, queued: events.filter((event) => event.kind === 'queued').length, successes: events.filter((event) => event.kind === 'success').length }; }
+export const formatBytes = (bytes: number) => bytes < 1024 ? `${bytes} B` : bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1024 / 1024).toFixed(2)} MB`;

@@ -1774,3 +1774,49 @@ body {
 
 .admin-sync-indicator { color: #d9e4ef; font-size: 12px; font-weight: 700; margin-inline-start: auto; }
 @media (max-width: 600px) { .admin-sync-indicator { font-size: 10px; } }
+
+
+/* نظام التصميم المتجاوب والوضع الليلي */
+:root { --surface: #fff; --surface-2: #faf9f6; --danger: #b44646; --success: #197c59; }
+.dark-mode, .dark-mode body { --surface: #172536; --surface-2: #1d2d40; --ink: #eef4f8; --muted: #a9b9c7; --line: #30465b; --navy: #dceaf4; --gold: #e1bc70; background: #101b28; color: var(--ink); }
+.dark-mode .app-shell, .dark-mode .admin { background: #101b28; }
+.dark-mode .admin-card, .dark-mode .side, .dark-mode .stat, .dark-mode .hero-card, .dark-mode .product, .dark-mode .lookup, .dark-mode .modal { background: var(--surface); color: var(--ink); border-color: var(--line); }
+.dark-mode table th { background: #22364b; color: #eef4f8; }
+.dark-mode .field, .dark-mode select, .dark-mode textarea { background: #1d2d40; color: var(--ink); border-color: var(--line); }
+.dark-mode .side button.active, .dark-mode .side button:hover { background: #294158; color: #fff; }
+.dark-mode .admin h2, .dark-mode .admin h3, .dark-mode .contract-details b { color: var(--ink); }
+.status-chip { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 4px 9px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.status-paid { background: #dff7ec; color: #14704f; }
+.status-late { background: #ffe5e5; color: #a33b3b; }
+.status-due { background: #fff0d2; color: #96600c; }
+.dark-mode .status-paid { background: #164c3b; color: #9ce6c2; }
+.dark-mode .status-late { background: #542f35; color: #ffb3b3; }
+.dark-mode .status-due { background: #59461f; color: #ffd98a; }
+.section-subtitle { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.telemetry-card .admin-table { max-height: 480px; }
+.telemetry-card th { position: sticky; top: 0; z-index: 1; }
+.btn:focus-visible, .field:focus-visible, .side button:focus-visible { outline: 3px solid rgba(201,164,91,.65); outline-offset: 2px; }
+@media (max-width: 760px) {
+  .admin-layout { display: block; padding: 12px; }
+  .side { display: flex; gap: 6px; overflow-x: auto; position: sticky; top: 58px; z-index: 3; margin-bottom: 12px; padding: 7px; }
+  .side button { min-width: max-content; width: auto; padding: 9px 11px; text-align: center; }
+  .adminbar { padding: 11px 12px; flex-wrap: wrap; }
+  .adminbar h2 { font-size: 15px; }
+  .admin-sync-indicator { order: 3; flex-basis: 100%; margin: 0; }
+  .form-grid { grid-template-columns: 1fr; }
+  .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .stat { min-height: 74px; padding: 12px; }
+  .stat b { font-size: 15px; overflow-wrap: anywhere; }
+  .admin-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .admin-table table { min-width: 680px; }
+  .row-actions { gap: 6px; }
+  .row-actions .btn { min-height: 40px; }
+  .admin-main { padding-bottom: 76px; }
+  .admin-main > .admin-title { position: sticky; top: 58px; z-index: 2; padding: 10px 0; background: var(--surface-2); }
+  .contract-actions, .product-admin-row .row-actions { position: sticky; bottom: 8px; z-index: 4; background: color-mix(in srgb, var(--surface) 92%, transparent); padding: 8px; border-radius: 14px; box-shadow: 0 8px 22px rgba(0,0,0,.14); }
+  .toast { left: 12px; right: 12px; bottom: 14px; text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+
+.toast-success { border-inline-start: 4px solid #39c98a; }
+.toast-error { background: #8f3038; border-inline-start: 4px solid #ffb0b0; }
