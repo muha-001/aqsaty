@@ -1771,3 +1771,6 @@ body {
 .verification-seal { display: grid; place-items: center; width: 58px; height: 58px; margin: 0 auto 12px; border-radius: 50%; color: #fff; background: var(--green); font-size: 32px; font-weight: 800; box-shadow: 0 8px 22px rgba(29,154,108,.25); }
 .verification-card h3 { margin: 0 0 4px; color: var(--navy); }
 .verification-card p { margin: 0 0 18px; color: var(--muted); font-size: 13px; }
+
+.admin-sync-indicator { color: #d9e4ef; font-size: 12px; font-weight: 700; margin-inline-start: auto; }
+@media (max-width: 600px) { .admin-sync-indicator { font-size: 10px; } }
