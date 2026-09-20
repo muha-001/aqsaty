@@ -23,3 +23,16 @@ export function filterAndSortContracts(database: Database, filters: ContractSear
     return b.createdAt.localeCompare(a.createdAt);
   });
 }
+
+export function visibleCustomerIds(database: Database, filters: ContractSearchFilters): Set<string> {
+  const ids = new Set(filterAndSortContracts(database, filters).map((contract) => contract.customerId));
+  const hasContractFilters = Boolean(filters.status && filters.status !== 'all') || Boolean(filters.dueFrom || filters.dueTo || filters.minRemaining !== undefined || filters.maxRemaining !== undefined);
+  if (hasContractFilters) return ids;
+  const query = (filters.query || '').trim().toLocaleLowerCase();
+  for (const customer of database.customers) {
+    const name = customer.name.toLocaleLowerCase();
+    const phone = normalizePhone(customer.phone);
+    if (!query || name.includes(query) || phone.includes(normalizePhone(query))) ids.add(customer.id);
+  }
+  return ids;
+}
