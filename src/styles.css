@@ -1820,3 +1820,13 @@ body {
 
 .toast-success { border-inline-start: 4px solid #39c98a; }
 .toast-error { background: #8f3038; border-inline-start: 4px solid #ffb0b0; }
+
+.advanced-search { display: grid; grid-template-columns: minmax(180px, 1fr) 180px auto; gap: 8px; }
+.advanced-filters { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+@media (max-width: 760px) { .advanced-search, .advanced-filters { grid-template-columns: 1fr; } }
+
+.contract-history { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+.history-list { display: grid; gap: 7px; margin-top: 10px; }
+.history-entry { display: grid; grid-template-columns: auto auto 1fr; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 10px; background: var(--surface-2); color: var(--muted); font-size: 12px; }
+.history-entry b { color: var(--ink); }
+.history-entry small { grid-column: 1 / -1; color: var(--muted); }
