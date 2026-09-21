@@ -13,5 +13,10 @@ export interface Contract { id: string; number: string; customerId: string; prod
 export interface Payment { id: string; contractId: string; scheduleId: string; amount: number; method: PaymentMethod; date: string; receiptNumber: string; note?: string; }
 export interface ActivityLog { id: string; action: ActivityAction; entity: string; entityId: string; description: string; createdAt: string; }
 export interface Settings { shopName: string; whatsappTemplate: string; reminderTemplate: string; }
-export interface Database { customers: Customer[]; products: Product[]; contracts: Contract[]; payments: Payment[]; activities: ActivityLog[]; settings: Settings; }
+export type TrashEntityType = 'customer' | 'product' | 'contract';
+export interface DeletedRecord { id: string; entityType: TrashEntityType; entityId: string; record: Customer | Product | Contract; relatedPayments?: Payment[]; deletedBy: string; deletedByName: string; deletedAt: string; }
+export type WorkspaceRole = 'owner' | 'manager' | 'staff' | 'viewer';
+export interface DeviceSession { id: string; userId: string; workspaceId: string; deviceId: string; deviceLabel: string; approximateLocation: string; lastSeenAt: string; createdAt: string; revokedAt: string | null; isCurrent?: boolean; }
+export interface SecurityEvent { id: string; userId: string; workspaceId: string; kind: 'login' | 'revoke'; deviceId: string; deviceLabel: string; approximateLocation: string; createdAt: string; readAt: string | null; }
+export interface Database { customers: Customer[]; products: Product[]; contracts: Contract[]; payments: Payment[]; activities: ActivityLog[]; trash: DeletedRecord[]; settings: Settings; }
 export interface ContractStats { paid: number; remaining: number; completed: number; overdue: number; percent: number; latePenalty: number; nextDue?: ScheduleItem; }

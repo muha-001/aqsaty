@@ -1863,3 +1863,19 @@ body {
 .late-rank { grid-template-columns: 1fr auto; }
 @media (max-width: 1050px) { .dashboard-grid { grid-template-columns: 1fr 1fr; } .dashboard-chart-card { grid-column: 1 / -1; } .dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .sync-status-bar { align-items: flex-start; flex-direction: column; gap: 5px; } .dashboard-grid { grid-template-columns: 1fr; } .dashboard-chart-card { grid-column: auto; } .dashboard-stats { grid-template-columns: 1fr 1fr; } .flow-chart { gap: 4px; } .flow-bar { width: 8px; } .rank-row small { font-size: 10px; } }
+
+
+/* Secure trash and device sessions */
+.security-feature-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 16px 0; }
+.security-stack { display: grid; gap: 14px; }
+.security-card, .security-alert, .device-row { display: flex; align-items: center; gap: 12px; }
+.security-alert { justify-content: space-between; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--amber) 38%, transparent); border-radius: 14px; background: color-mix(in srgb, var(--amber) 10%, var(--card)); color: var(--text); }
+.security-alert p { margin: 4px 0 0; color: var(--muted); }
+.device-list, .trash-list { display: grid; gap: 10px; }
+.device-row { justify-content: space-between; padding: 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); transition: transform 180ms ease-out, border-color 180ms ease-out; }
+.device-row:hover { transform: translateY(-1px); border-color: var(--blue); }
+.current-device { border-color: color-mix(in srgb, var(--green) 55%, var(--border)); }
+.current-badge { display: inline-flex; align-items: center; margin-inline-start: 8px; padding: 3px 8px; border-radius: 999px; background: color-mix(in srgb, var(--green) 14%, transparent); color: var(--green); font-size: 12px; font-weight: 700; }
+.danger-text { flex-basis: 100%; margin: 0; color: var(--red); font-size: 12px; }
+@media (max-width: 820px) { .security-feature-grid { grid-template-columns: 1fr; } .security-alert, .device-row { align-items: flex-start; flex-wrap: wrap; } .security-alert .btn, .device-row .btn { margin-inline-start: auto; } }
+@media (prefers-reduced-motion: reduce) { .device-row { transition: border-color 180ms ease-out; } .device-row:hover { transform: none; } }
