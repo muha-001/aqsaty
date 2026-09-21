@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { emptyDatabase, createSchedule } from './store';
+import { deleteContract, emptyDatabase, createSchedule } from './store';
 import { getDashboardMetrics } from './dashboardAnalytics';
 
 describe('dashboard analytics', () => {
@@ -28,5 +28,28 @@ describe('dashboard analytics', () => {
     const metrics = getDashboardMetrics(database, new Date('2026-09-20T12:00:00Z'));
     expect(metrics.monthlyFlow.find((item) => item.key === '2026-09')?.paid).toBe(250);
     expect(metrics.collectionRate).toBe(0);
+  });
+
+  it('counts unique customers and contracts by stable ids', () => {
+    const database = emptyDatabase();
+    database.customers = [{ id: 'c1', name: 'علي', phone: '1', createdAt: '2026-09-01' }, { id: 'c1', name: 'علي', phone: '1', createdAt: '2026-09-01' }];
+    database.contracts = [{ id: 'ct1', number: 'AQ-1', customerId: 'c1', productId: '', productName: 'هاتف', totalAmount: 100, downPayment: 0, financedAmount: 100, months: 1, startDate: '2026-09-01', status: 'نشط', schedule: [], createdAt: '2026-09-01', updatedAt: '2026-09-01' }, { id: 'ct1', number: 'AQ-1', customerId: 'c1', productId: '', productName: 'هاتف', totalAmount: 100, downPayment: 0, financedAmount: 100, months: 1, startDate: '2026-09-01', status: 'نشط', schedule: [], createdAt: '2026-09-01', updatedAt: '2026-09-01' }];
+    const metrics = getDashboardMetrics(database, new Date('2026-09-20T12:00:00Z'));
+    expect(metrics.customerCount).toBe(1);
+    expect(metrics.contractCount).toBe(1);
+  });
+
+  it('deletes a contract and its linked payments without deleting the customer', () => {
+    const database = emptyDatabase();
+    database.customers = [{ id: 'c1', name: 'علي', phone: '1', createdAt: '2026-09-01' }];
+    database.products = [{ id: 'p1', name: 'هاتف', category: '', description: '', price: 100, months: [1], icon: '📦', active: true, stock: 0, serialNumbers: [], condition: 'جديد', images: [], specs: '', warranty: '' }];
+    database.contracts = [{ id: 'ct1', number: 'AQ-1', customerId: 'c1', productId: 'p1', productName: 'هاتف', serialNumber: 'SN-1', totalAmount: 100, downPayment: 0, financedAmount: 100, months: 1, startDate: '2026-09-01', status: 'نشط', schedule: [], createdAt: '2026-09-01', updatedAt: '2026-09-01' }];
+    database.payments = [{ id: 'pay1', contractId: 'ct1', scheduleId: 's1', amount: 100, method: 'نقدي', date: '2026-09-01', receiptNumber: 'R1' }];
+    deleteContract(database, 'ct1');
+    expect(database.contracts).toHaveLength(0);
+    expect(database.payments).toHaveLength(0);
+    expect(database.customers).toHaveLength(1);
+    expect(database.products[0].stock).toBe(1);
+    expect(database.products[0].serialNumbers).toEqual(['SN-1']);
   });
 });
