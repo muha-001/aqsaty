@@ -1,10 +1,11 @@
-import type { Database } from './types';
+import type { Database, DeletedRecord, DeviceSession, SecurityEvent, WorkspaceRole } from './types';
 
 export type CloudSyncConfig = { url: string; anonKey: string; workspaceId: string };
 export type CloudSyncStatus = 'disabled' | 'offline' | 'syncing' | 'synced' | 'error';
 export type CloudUser = { id: string; email?: string };
 export type PublicLookup = { customerName: string; contracts: Array<{ number: string; productName: string; status: string; financedAmount: number; schedule: Array<{ number: number; dueDate: string; amount: number; paidAmount: number }> }> };
 export type PublicContractVerification = { number: string; productName: string; status: string; financedAmount: number; months: number; startDate: string };
+export type SecurityContext = { role: WorkspaceRole; devices: DeviceSession[]; events: SecurityEvent[] };
 
 function cloudPayload(database: Database): Database {
   return { ...database, products: database.products.map((product) => ({ ...product, images: [] })) };
@@ -116,3 +117,67 @@ async function pushCloudDatabaseNow(database: Database): Promise<void> {
 }
 
 export function pushCloudDatabase(database: Database): Promise<void> { return serializeCloudPush(() => pushCloudDatabaseNow(database)); }
+
+const DEVICE_KEY = 'aqsaty_device_id_v1';
+const securityRpc = async <T>(name: string, args: Record<string, unknown> = {}): Promise<T | null> => {
+  const client = await getClient();
+  const config = configFromEnv();
+  if (!client || !config || !navigator.onLine || !(await getCloudUser())) return null;
+  const { data, error } = await client.rpc(name, { target_workspace: config.workspaceId, ...args });
+  if (error) throw error;
+  return (data ?? null) as T | null;
+};
+
+export function currentDeviceId() {
+  const existing = localStorage.getItem(DEVICE_KEY);
+  if (existing) return existing;
+  const value = globalThis.crypto?.randomUUID?.() || `device-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  localStorage.setItem(DEVICE_KEY, value);
+  return value;
+}
+
+export function currentDeviceMetadata() {
+  return { device_id: currentDeviceId(), device_label: `${/Mobi|Android/i.test(navigator.userAgent) ? 'هاتف' : 'حاسوب'} — ${navigator.userAgent.includes('Edg/') ? 'Edge' : navigator.userAgent.includes('Chrome/') ? 'Chrome' : navigator.userAgent.includes('Firefox/') ? 'Firefox' : 'متصفح'}`, approximate_location: `${navigator.language || 'لغة غير معروفة'} · ${Intl.DateTimeFormat().resolvedOptions().timeZone || 'توقيت غير معروف'}` };
+}
+
+export async function registerCurrentDevice(): Promise<DeviceSession | null> {
+  return securityRpc<DeviceSession>('aqsaty_register_device', currentDeviceMetadata());
+}
+
+export async function touchCurrentDevice(): Promise<DeviceSession | null> {
+  return securityRpc<DeviceSession>('aqsaty_touch_device', { device_id: currentDeviceId() });
+}
+
+export async function getSecurityContext(): Promise<SecurityContext | null> {
+  const [role, devices, events] = await Promise.all([
+    securityRpc<WorkspaceRole>('aqsaty_current_role'),
+    securityRpc<DeviceSession[]>('aqsaty_list_devices'),
+    securityRpc<SecurityEvent[]>('aqsaty_list_security_events'),
+  ]);
+  if (!role && !devices && !events) return null;
+  return { role: role || 'viewer', devices: (devices || []).map((device) => ({ ...device, isCurrent: device.deviceId === currentDeviceId() })), events: events || [] };
+}
+
+export async function revokeDevice(deviceId: string): Promise<boolean> {
+  return Boolean(await securityRpc<boolean>('aqsaty_revoke_device', { device_id: deviceId }));
+}
+
+export async function markSecurityEventsRead(eventIds: string[]): Promise<boolean> {
+  return Boolean(await securityRpc<boolean>('aqsaty_mark_security_events_read', { event_ids: eventIds }));
+}
+
+export async function listCloudTrash(): Promise<DeletedRecord[]> {
+  return (await securityRpc<DeletedRecord[]>('aqsaty_list_trash')) || [];
+}
+
+export async function restoreCloudTrash(trashId: string): Promise<boolean> {
+  return Boolean(await securityRpc<boolean>('aqsaty_restore_trash', { trash_id: trashId }));
+}
+
+export async function permanentlyDeleteCloudTrash(trashId: string, confirmation: string): Promise<boolean> {
+  return Boolean(await securityRpc<boolean>('aqsaty_permanently_delete_trash', { trash_id: trashId, confirmation }));
+}
+
+export async function createCloudTrash(record: Omit<DeletedRecord, 'id'>): Promise<DeletedRecord | null> {
+  return securityRpc<DeletedRecord>('aqsaty_create_trash', { trash_record: record });
+}
