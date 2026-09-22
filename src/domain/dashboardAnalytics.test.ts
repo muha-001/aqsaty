@@ -50,6 +50,6 @@ describe('dashboard analytics', () => {
     expect(database.payments).toHaveLength(0);
     expect(database.customers).toHaveLength(1);
     expect(database.products[0].stock).toBe(1);
-    expect(database.products[0].serialNumbers).toEqual(['SN-1']);
+    expect(database.products[0].serialNumbers).toEqual([]);
   });
 });

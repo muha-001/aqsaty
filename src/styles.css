@@ -1879,3 +1879,25 @@ body {
 .danger-text { flex-basis: 100%; margin: 0; color: var(--red); font-size: 12px; }
 @media (max-width: 820px) { .security-feature-grid { grid-template-columns: 1fr; } .security-alert, .device-row { align-items: flex-start; flex-wrap: wrap; } .security-alert .btn, .device-row .btn { margin-inline-start: auto; } }
 @media (prefers-reduced-motion: reduce) { .device-row { transition: border-color 180ms ease-out; } .device-row:hover { transform: none; } }
+
+
+/* تحسينات الثيم الداكن والهواتف المثبتة كتطبيق */
+.dark-mode .header { background: rgba(16, 27, 40, .94); border-bottom-color: var(--line); }
+.dark-mode .navlinks a:hover, .dark-mode .navlinks button:hover { background: #294158; color: #fff; }
+.dark-mode .btn-ghost { color: #f4f7fa; border-color: rgba(236, 212, 154, .48); background: rgba(16, 27, 40, .35); }
+.dark-mode .muted-btn { background: #2b4055; color: #eef4f8; }
+.dark-mode .green-btn { background: #164c3b; color: #a9f0ce; }
+.dark-mode .orange-btn { background: #59461f; color: #ffdc91; }
+.dark-mode .danger { background: #542f35; color: #ffc0c0; }
+.dark-mode .notice { background: #25394d; color: #dbe8f2; border-color: #49657e; }
+.dark-mode .hint, .dark-mode .contract-meta { color: #b7c7d4; }
+.dark-mode .customer-toggle { color: var(--ink); }
+.dark-mode .customer-toggle:hover { background: #243b51; }
+.dark-mode .document-table th { background: #22364b; color: #eef4f8; }
+.dark-mode .document-terms, .dark-mode .receipt-thanks { background: #3e341f; color: #ffe2a0; border-color: #80662d; }
+.dark-mode .document-grid b, .dark-mode .receipt-number, .dark-mode .verification-card h3 { color: var(--navy); }
+.customer-toggle { border: 0; background: transparent; color: var(--ink); text-align: start; padding: 4px 8px; border-radius: 10px; cursor: pointer; }
+.customer-toggle:hover { background: #f0ece4; }
+.customer-toggle:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+@media (display-mode: standalone) { body { padding-top: env(safe-area-inset-top); } .header { top: env(safe-area-inset-top); } .topline { padding-top: max(8px, env(safe-area-inset-top)); } }
+@supports (-webkit-touch-callout: none) { body { padding-top: env(safe-area-inset-top); } .header { top: env(safe-area-inset-top); } }
