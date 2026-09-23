@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { canPermanentlyDelete, formatApproximateLocation, isNewSecurityEvent, trashLocalRecord, restoreLocalRecord } from './securityFeatures';
 import { emptyDatabase } from './store';
+import type { Database } from './types';
 
 describe('secure deletion rules', () => {
   it('allows permanent deletion only for workspace owners', () => {
@@ -17,6 +18,14 @@ describe('secure deletion rules', () => {
     expect(result.database.customers).toHaveLength(0);
     expect(result.database.trash).toHaveLength(1);
     expect(result.database.trash[0]).toMatchObject({ entityType: 'customer', entityId: 'customer-1', deletedBy: 'user-1', deletedByName: 'علي المدير' });
+  });
+
+  it('deletes safely when legacy data has no trash collection', () => {
+    const database = { ...emptyDatabase(), trash: undefined } as unknown as Database;
+    database.customers = [{ id: 'customer-legacy', name: 'زبون قديم', phone: '07700000000', createdAt: '2026-09-21' }];
+    const result = trashLocalRecord(database, 'customer', 'customer-legacy', 'user-1', 'المدير');
+    expect(result.database.customers).toHaveLength(0);
+    expect(result.database.trash).toHaveLength(1);
   });
 
   it('restores a trashed record without replacing a newer record', () => {

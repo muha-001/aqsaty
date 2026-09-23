@@ -1,3 +1,4 @@
+import { normalizeDatabase } from './store';
 import type { Database, DeletedRecord, DeviceSession, SecurityEvent, WorkspaceRole } from './types';
 
 export type CloudSyncConfig = { url: string; anonKey: string; workspaceId: string };
@@ -12,7 +13,7 @@ function cloudPayload(database: Database): Database {
 }
 
 function mergeById<T extends { id: string }>(local: T[], cloud: T[]): T[] { const merged = new Map<string, T>(); for (const item of local) merged.set(item.id, item); for (const item of cloud) if (!merged.has(item.id)) merged.set(item.id, item); return [...merged.values()]; }
-export function mergeCloudDatabases(local: Database, cloud: Database): Database { return { ...cloud, customers: mergeById(local.customers, cloud.customers), products: mergeById(local.products, cloud.products), contracts: mergeById(local.contracts, cloud.contracts), payments: mergeById(local.payments, cloud.payments), activities: mergeById(local.activities, cloud.activities).slice(0, 500), trash: cloud.trash || local.trash || [], settings: local.settings }; }
+export function mergeCloudDatabases(local: Database, cloud: Database): Database { const safeLocal = normalizeDatabase(local); const safeCloud = normalizeDatabase(cloud); return { ...safeCloud, customers: mergeById(safeLocal.customers, safeCloud.customers), products: mergeById(safeLocal.products, safeCloud.products), contracts: mergeById(safeLocal.contracts, safeCloud.contracts), payments: mergeById(safeLocal.payments, safeCloud.payments), activities: mergeById(safeLocal.activities, safeCloud.activities).slice(0, 500), trash: safeCloud.trash.length ? safeCloud.trash : safeLocal.trash, settings: safeLocal.settings }; }
 
 type SupabaseSession = { user: { id: string; email?: string } } | null;
 type SupabaseClient = {
@@ -99,7 +100,7 @@ export async function pullCloudDatabase(): Promise<Database | null> {
   const { data, error } = await client.from('aqsaty_records').select('id,revision,payload').eq('workspace_id', config.workspaceId).maybeSingle();
   if (error) throw error;
   lastPulledRevision = data?.revision ?? null;
-  return data?.payload ?? null;
+  return data?.payload ? normalizeDatabase(data.payload) : null;
 }
 
 async function pushCloudDatabaseNow(database: Database): Promise<void> {

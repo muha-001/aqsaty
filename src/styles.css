@@ -1792,6 +1792,28 @@ body {
 .dark-mode .status-paid { background: #164c3b; color: #9ce6c2; }
 .dark-mode .status-late { background: #542f35; color: #ffb3b3; }
 .dark-mode .status-due { background: #59461f; color: #ffd98a; }
+.dark-mode .contract,
+.dark-mode .step,
+.dark-mode .calculator,
+.dark-mode .product-details { background: #172536; color: #eef4f8; border-color: #30465b; }
+.dark-mode .contract h3,
+.dark-mode .contract-details b,
+.dark-mode .product-detail-copy h2,
+.dark-mode .calculator h3,
+.dark-mode .step h3 { color: #eef4f8; }
+.dark-mode .contract-meta,
+.dark-mode .contract details summary,
+.dark-mode .product-detail-copy p { color: #b7c7d4; }
+.dark-mode .contract .admin-table,
+.dark-mode .contract-history,
+.dark-mode .history-entry { color: #eef4f8; border-color: #30465b; }
+.dark-mode .product-image-wrap,
+.dark-mode .gallery-empty { background: linear-gradient(145deg, #263b51, #1d2d40); }
+.dark-mode .specs { background: #1d2d40; border-color: #30465b; }
+.dark-mode .specs:hover { background: #263b51; }
+.dark-mode .specs div { color: #eef4f8; }
+.dark-mode .warranty { background: #164c3b; color: #a9f0ce !important; }
+.dark-mode .step:hover { background: #1d2d40; }
 .dark-mode .products { background: linear-gradient(180deg, #172536 0%, #101b28 100%); }
 .dark-mode .section-head h2 { color: #eef4f8; }
 .dark-mode .section-head p, .dark-mode .section-subtitle { color: #b7c7d4; }

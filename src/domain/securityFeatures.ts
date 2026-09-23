@@ -10,6 +10,7 @@ export function entityLabel(type: TrashEntityType) {
 export function trashLocalRecord(database: Database, entityType: TrashEntityType, entityId: string, deletedBy: string, deletedByName: string, deletedAt = new Date().toISOString()): { database: Database; deleted: DeletedRecord } {
   const next = structuredClone(database);
   const collection = next[`${entityType}s` as 'customers' | 'products' | 'contracts'];
+  if (!Array.isArray(collection)) throw new Error('بيانات السجل غير مكتملة');
   const index = collection.findIndex((item) => item.id === entityId);
   if (index < 0) throw new Error('السجل غير موجود');
   const [record] = collection.splice(index, 1);
@@ -18,19 +19,19 @@ export function trashLocalRecord(database: Database, entityType: TrashEntityType
     deleted.relatedPayments = next.payments.filter((payment) => payment.contractId === entityId);
     next.payments = next.payments.filter((payment) => payment.contractId !== entityId);
   }
-  next.trash = [deleted, ...next.trash.filter((item) => item.id !== deleted.id)];
+  next.trash = [deleted, ...(next.trash || []).filter((item) => item.id !== deleted.id)];
   return { database: next, deleted };
 }
 
 export function restoreLocalRecord(database: Database, trashId: string): Database {
   const next = structuredClone(database);
-  const item = next.trash.find((entry) => entry.id === trashId);
+  const item = (next.trash || []).find((entry) => entry.id === trashId);
   if (!item) throw new Error('عنصر سلة المحذوفات غير موجود');
   const collection = next[`${item.entityType}s` as 'customers' | 'products' | 'contracts'];
   if (collection.some((entry) => entry.id === item.entityId)) return next;
   collection.push(item.record as never);
   if (item.entityType === 'contract' && item.relatedPayments) next.payments.push(...item.relatedPayments.filter((payment) => !next.payments.some((current) => current.id === payment.id)));
-  next.trash = next.trash.filter((entry) => entry.id !== trashId);
+  next.trash = (next.trash || []).filter((entry) => entry.id !== trashId);
   return next;
 }
 
