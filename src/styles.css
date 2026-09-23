@@ -1751,7 +1751,7 @@ body {
 .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-top: 42px; text-align: center; font-size: 12px; }
 .signature-grid span { display: block; height: 42px; margin-top: 18px; border-bottom: 1px solid #657182; }
 .receipt-number { margin: 18px 0; color: var(--navy); font-size: 13px; text-align: center; }
-.amount-emphasis { color: var(--green) !important; font-size: 16px; }
+.amount-emphasis { color: var(--green) !important; font-size: inherit; font-weight: 800; }
 .customer-statement-print > .official-document { margin-top: 24px; page-break-before: always; }
 
 @media print {
@@ -1792,6 +1792,12 @@ body {
 .dark-mode .status-paid { background: #164c3b; color: #9ce6c2; }
 .dark-mode .status-late { background: #542f35; color: #ffb3b3; }
 .dark-mode .status-due { background: #59461f; color: #ffd98a; }
+.dark-mode .products { background: linear-gradient(180deg, #172536 0%, #101b28 100%); }
+.dark-mode .section-head h2 { color: #eef4f8; }
+.dark-mode .section-head p, .dark-mode .section-subtitle { color: #b7c7d4; }
+.dark-mode .steps { background: #101b28; }
+.dark-mode .step { background: #172536; border-color: #30465b; color: #eef4f8; }
+.dark-mode .step p { color: #b7c7d4; }
 .section-subtitle { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
 .telemetry-card .admin-table { max-height: 480px; }
 .telemetry-card th { position: sticky; top: 0; z-index: 1; }

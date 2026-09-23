@@ -12,7 +12,7 @@ function cloudPayload(database: Database): Database {
 }
 
 function mergeById<T extends { id: string }>(local: T[], cloud: T[]): T[] { const merged = new Map<string, T>(); for (const item of local) merged.set(item.id, item); for (const item of cloud) if (!merged.has(item.id)) merged.set(item.id, item); return [...merged.values()]; }
-export function mergeCloudDatabases(local: Database, cloud: Database): Database { return { ...cloud, customers: mergeById(local.customers, cloud.customers), products: mergeById(local.products, cloud.products), contracts: mergeById(local.contracts, cloud.contracts), payments: mergeById(local.payments, cloud.payments), activities: mergeById(local.activities, cloud.activities).slice(0, 500), settings: local.settings }; }
+export function mergeCloudDatabases(local: Database, cloud: Database): Database { return { ...cloud, customers: mergeById(local.customers, cloud.customers), products: mergeById(local.products, cloud.products), contracts: mergeById(local.contracts, cloud.contracts), payments: mergeById(local.payments, cloud.payments), activities: mergeById(local.activities, cloud.activities).slice(0, 500), trash: cloud.trash || local.trash || [], settings: local.settings }; }
 
 type SupabaseSession = { user: { id: string; email?: string } } | null;
 type SupabaseClient = {

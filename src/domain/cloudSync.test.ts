@@ -29,4 +29,12 @@ describe('cloud synchronization queue', () => {
     const merged = mergeCloudDatabases(local, cloud);
     expect(merged.customers.map((customer) => customer.id)).toEqual(['local_customer', 'cloud_customer']);
   });
+
+  it('normalizes legacy cloud payloads without a trash collection', () => {
+    const local = emptyDatabase();
+    local.trash = [{ id: 'trash_1', entityType: 'contract', entityId: 'contract_1', record: {} as never, deletedAt: '2026-09-20', deletedBy: 'admin_1', deletedByName: 'المدير' }];
+    const cloud = { ...emptyDatabase(), trash: undefined } as unknown as ReturnType<typeof emptyDatabase>;
+    const merged = mergeCloudDatabases(local, cloud);
+    expect(merged.trash).toEqual(local.trash);
+  });
 });
