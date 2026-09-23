@@ -1929,3 +1929,11 @@ body {
 .customer-toggle:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 @media (display-mode: standalone) { body { padding-top: env(safe-area-inset-top); } .header { top: env(safe-area-inset-top); } .topline { padding-top: max(8px, env(safe-area-inset-top)); } }
 @supports (-webkit-touch-callout: none) { body { padding-top: env(safe-area-inset-top); } .header { top: env(safe-area-inset-top); } }
+
+/* المؤشرات المالية وتسجيل Google */
+.google-btn { background: #4285f4; color: #fff; border-color: #4285f4; }
+.google-btn:hover { background: #2f6edb; border-color: #2f6edb; }
+.financial-stats { margin-top: 16px; }
+.financial-summary-note { margin: 16px 0; color: var(--muted); line-height: 1.8; }
+.financial-summary-note b { color: var(--navy); }
+.dark-mode .financial-summary-note b { color: #eef4f8; }

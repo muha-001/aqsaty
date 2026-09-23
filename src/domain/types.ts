@@ -6,7 +6,7 @@ export type ActivityAction = 'إنشاء' | 'تعديل' | 'دفعة' | 'حذف'
 export type ContractHistoryAction = 'إنشاء' | 'تعديل' | 'دفعة' | 'تمديد' | 'إعادة جدولة كاملة' | 'إلغاء' | 'غرامة' | 'خصم';
 
 export interface Customer { id: string; name: string; phone: string; notes?: string; createdAt: string; }
-export interface Product { id: string; name: string; category: string; description: string; price: number; months: number[]; icon: ProductIcon; active: boolean; stock: number; serialNumbers: string[]; condition: ProductCondition; images: string[]; specs: string; warranty?: string; }
+export interface Product { id: string; name: string; category: string; description: string; price: number; costPrice?: number; cashPrice?: number; installmentPrice?: number; months: number[]; icon: ProductIcon; active: boolean; stock: number; serialNumbers: string[]; condition: ProductCondition; images: string[]; specs: string; warranty?: string; }
 export interface ScheduleItem { id: string; number: number; dueDate: string; amount: number; paidAmount: number; }
 export interface ContractHistoryEntry { id: string; action: ContractHistoryAction; at: string; reason?: string; snapshot?: Partial<Contract>; }
 export interface Contract { id: string; number: string; customerId: string; productId: string; productName: string; serialNumber?: string; totalAmount: number; downPayment: number; financedAmount: number; months: number; startDate: string; status: ContractStatus; schedule: ScheduleItem[]; createdAt: string; updatedAt: string; history?: ContractHistoryEntry[]; cancellationReason?: string; }

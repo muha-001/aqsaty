@@ -21,7 +21,7 @@ type SupabaseClient = {
     getUser: () => Promise<{ data: { user: { id: string; email?: string } | null } }>;
     getSession: () => Promise<{ data: { session: SupabaseSession } }>;
     signInWithPassword: (credentials: { email: string; password: string }) => Promise<{ data: { user: { id: string; email?: string } | null }; error: Error | null }>;
-    signInWithOAuth: (options: { provider: 'github'; options: { redirectTo: string } }) => Promise<{ error: Error | null }>;
+    signInWithOAuth: (options: { provider: 'github' | 'google'; options: { redirectTo: string } }) => Promise<{ error: Error | null }>;
     signOut: () => Promise<{ error: Error | null }>;
   };
   from: (table: string) => {
@@ -80,6 +80,14 @@ export async function signInWithGitHub(): Promise<void> {
   if (!client) throw new Error('المزامنة السحابية غير مهيأة');
   const redirectTo = `${window.location.origin}${window.location.pathname}`;
   const { error } = await client.auth.signInWithOAuth({ provider: 'github', options: { redirectTo } });
+  if (error) throw error;
+}
+
+export async function signInWithGoogle(): Promise<void> {
+  const client = await getClient();
+  if (!client) throw new Error('المزامنة السحابية غير مهيأة');
+  const redirectTo = `${window.location.origin}${window.location.pathname}`;
+  const { error } = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
   if (error) throw error;
 }
 
