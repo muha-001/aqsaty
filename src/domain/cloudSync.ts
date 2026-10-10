@@ -13,7 +13,7 @@ function cloudPayload(database: Database): Database {
 }
 
 function mergeById<T extends { id: string }>(local: T[], cloud: T[]): T[] { const merged = new Map<string, T>(); for (const item of local) merged.set(item.id, item); for (const item of cloud) if (!merged.has(item.id)) merged.set(item.id, item); return [...merged.values()]; }
-export function mergeCloudDatabases(local: Database, cloud: Database): Database { const safeLocal = normalizeDatabase(local); const safeCloud = normalizeDatabase(cloud); return { ...safeCloud, customers: mergeById(safeLocal.customers, safeCloud.customers), products: mergeById(safeLocal.products, safeCloud.products), contracts: mergeById(safeLocal.contracts, safeCloud.contracts), payments: mergeById(safeLocal.payments, safeCloud.payments), activities: mergeById(safeLocal.activities, safeCloud.activities).slice(0, 500), trash: safeCloud.trash.length ? safeCloud.trash : safeLocal.trash, settings: safeLocal.settings }; }
+export function mergeCloudDatabases(local: Database, cloud: Database): Database { const safeLocal = normalizeDatabase(local); const safeCloud = normalizeDatabase(cloud); return { ...safeCloud, customers: mergeById(safeLocal.customers, safeCloud.customers), products: mergeById(safeLocal.products, safeCloud.products), contracts: mergeById(safeLocal.contracts, safeCloud.contracts), payments: mergeById(safeLocal.payments, safeCloud.payments), activities: mergeById(safeLocal.activities, safeCloud.activities).slice(0, 500), trash: safeCloud.trash.length ? safeCloud.trash : safeLocal.trash, guarantors: mergeById(safeLocal.guarantors, safeCloud.guarantors), settings: safeLocal.settings }; }
 
 type SupabaseSession = { user: { id: string; email?: string } } | null;
 type SupabaseClient = {

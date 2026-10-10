@@ -37,4 +37,13 @@ describe('cloud synchronization queue', () => {
     const merged = mergeCloudDatabases(local, cloud);
     expect(merged.trash).toEqual(local.trash);
   });
+
+  it('keeps guarantors from both local and cloud databases', () => {
+    const local = emptyDatabase();
+    const cloud = emptyDatabase();
+    local.guarantors = [{ id: 'local_guarantor', name: 'محلي', phone: '07700000000', relationship: 'أخ', address: 'بغداد', documents: [], createdAt: '2026-09-24', updatedAt: '2026-09-24' }];
+    cloud.guarantors = [{ id: 'cloud_guarantor', name: 'سحابي', phone: '07800000000', relationship: 'أب', address: 'البصرة', documents: [], createdAt: '2026-09-24', updatedAt: '2026-09-24' }];
+    const merged = mergeCloudDatabases(local, cloud);
+    expect(merged.guarantors.map((guarantor) => guarantor.id)).toEqual(['local_guarantor', 'cloud_guarantor']);
+  });
 });
