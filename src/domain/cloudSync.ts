@@ -21,6 +21,8 @@ type SupabaseClient = {
     getUser: () => Promise<{ data: { user: { id: string; email?: string } | null } }>;
     getSession: () => Promise<{ data: { session: SupabaseSession } }>;
     signInWithPassword: (credentials: { email: string; password: string }) => Promise<{ data: { user: { id: string; email?: string } | null }; error: Error | null }>;
+    signInWithOtp: (options: { email: string; options: { emailRedirectTo: string; shouldCreateUser: boolean } }) => Promise<{ error: Error | null }>;
+    verifyOtp: (options: { email: string; token: string; type: 'email' }) => Promise<{ data: { user: { id: string; email?: string } | null }; error: Error | null }>;
     signInWithOAuth: (options: { provider: 'github' | 'google'; options: { redirectTo: string } }) => Promise<{ error: Error | null }>;
     signOut: () => Promise<{ error: Error | null }>;
   };
@@ -43,6 +45,39 @@ let clientPromise: Promise<SupabaseClient | null> | null = null;
 let lastPulledRevision: number | null = null;
 let cloudPushQueue: Promise<unknown> = Promise.resolve();
 export function serializeCloudPush<T>(operation: () => Promise<T>): Promise<T> { const next = cloudPushQueue.then(operation); cloudPushQueue = next.catch(() => undefined); return next; }
+export function createLatestWriteQueue<T>(persist: (value: T) => Promise<void>) {
+  let latest: T | undefined;
+  let scheduled = false;
+  let waiters: Array<{ resolve: () => void; reject: (error: unknown) => void }> = [];
+  const run = async () => {
+    scheduled = false;
+    if (latest === undefined) return;
+    const value = latest;
+    latest = undefined;
+    try {
+      await persist(value);
+      const current = waiters;
+      waiters = [];
+      current.forEach(({ resolve }) => resolve());
+    } catch (error) {
+      const current = waiters;
+      waiters = [];
+      current.forEach(({ reject }) => reject(error));
+    }
+    if (latest !== undefined && !scheduled) {
+      scheduled = true;
+      void Promise.resolve().then(run);
+    }
+  };
+  return (value: T) => new Promise<void>((resolve, reject) => {
+    latest = value;
+    waiters.push({ resolve, reject });
+    if (!scheduled) {
+      scheduled = true;
+      void Promise.resolve().then(run);
+    }
+  });
+}
 async function getClient(): Promise<SupabaseClient | null> {
   if (!configFromEnv()) return null;
   if (!clientPromise) {
@@ -72,6 +107,21 @@ export async function signInCloud(email: string, password: string): Promise<Clou
   if (!client) throw new Error('المزامنة السحابية غير مهيأة');
   const { data, error } = await client.auth.signInWithPassword({ email: email.trim(), password });
   if (error || !data.user) throw error || new Error('تعذر تسجيل الدخول السحابي');
+  return data.user;
+}
+
+export async function sendEmailOtp(email: string): Promise<void> {
+  const client = await getClient();
+  if (!client) throw new Error('المزامنة السحابية غير مهيأة');
+  const { error } = await client.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: `${window.location.origin}${window.location.pathname}`, shouldCreateUser: false } });
+  if (error) throw error;
+}
+
+export async function verifyEmailOtp(email: string, token: string): Promise<CloudUser> {
+  const client = await getClient();
+  if (!client) throw new Error('المزامنة السحابية غير مهيأة');
+  const { data, error } = await client.auth.verifyOtp({ email: email.trim(), token: token.trim(), type: 'email' });
+  if (error || !data.user) throw error || new Error('رمز التحقق غير صحيح أو منتهي');
   return data.user;
 }
 
@@ -125,7 +175,23 @@ async function pushCloudDatabaseNow(database: Database): Promise<void> {
   lastPulledRevision = current ? current.revision + 1 : 1;
 }
 
-export function pushCloudDatabase(database: Database): Promise<void> { return serializeCloudPush(() => pushCloudDatabaseNow(database)); }
+async function pushCloudDatabaseWithRecovery(database: Database): Promise<void> {
+  if (lastPulledRevision === null) {
+    const cloud = await pullCloudDatabase();
+    if (cloud) database = mergeCloudDatabases(database, cloud);
+  }
+  try {
+    await pushCloudDatabaseNow(database);
+  } catch (error) {
+    if (!(error instanceof Error) || !error.message.startsWith('حدث تعارض')) throw error;
+    const cloud = await pullCloudDatabase();
+    if (!cloud) throw error;
+    await pushCloudDatabaseNow(mergeCloudDatabases(database, cloud));
+  }
+}
+
+const latestCloudPush = createLatestWriteQueue(pushCloudDatabaseWithRecovery);
+export function pushCloudDatabase(database: Database): Promise<void> { return latestCloudPush(structuredClone(database)); }
 
 const DEVICE_KEY = 'aqsaty_device_id_v1';
 const securityRpc = async <T>(name: string, args: Record<string, unknown> = {}): Promise<T | null> => {
