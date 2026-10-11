@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mergeCloudDatabases, serializeCloudPush } from './cloudSync';
+import { createLatestWriteQueue, mergeCloudDatabases, serializeCloudPush } from './cloudSync';
 import { emptyDatabase } from './store';
 
 describe('cloud synchronization queue', () => {
@@ -45,5 +45,17 @@ describe('cloud synchronization queue', () => {
     cloud.guarantors = [{ id: 'cloud_guarantor', name: 'سحابي', phone: '07800000000', relationship: 'أب', address: 'البصرة', documents: [], createdAt: '2026-09-24', updatedAt: '2026-09-24' }];
     const merged = mergeCloudDatabases(local, cloud);
     expect(merged.guarantors.map((guarantor) => guarantor.id)).toEqual(['local_guarantor', 'cloud_guarantor']);
+  });
+
+  it('coalesces rapid writes and persists only the latest snapshot', async () => {
+    const persisted: number[] = [];
+    const queue = createLatestWriteQueue(async (value: number) => {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      persisted.push(value);
+    });
+    const first = queue(1);
+    const second = queue(2);
+    await expect(Promise.all([first, second])).resolves.toEqual([undefined, undefined]);
+    expect(persisted).toEqual([2]);
   });
 });
