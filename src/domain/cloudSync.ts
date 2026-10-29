@@ -33,6 +33,14 @@ type SupabaseClient = {
   rpc: (functionName: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: Error | null }>;
 };
 
+export function getOAuthRedirectUrl(origin: string, basePath = '/', configuredRedirect?: string): string {
+  const configured = configuredRedirect?.trim();
+  if (configured) return new URL(configured).toString();
+  const normalizedOrigin = origin.endsWith('/') ? origin : `${origin}/`;
+  const normalizedPath = basePath.startsWith('/') ? basePath : `/${basePath}`;
+  return new URL(normalizedPath, normalizedOrigin).toString();
+}
+
 function configFromEnv(): CloudSyncConfig | null {
   const env = import.meta.env as Record<string, string | undefined>;
   const url = env.VITE_SUPABASE_URL?.trim();
@@ -102,6 +110,16 @@ export async function getCloudUser(): Promise<CloudUser | null> {
   return data.user;
 }
 
+export async function waitForCloudUser(timeoutMs = 10000): Promise<CloudUser | null> {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const user = await getCloudUser();
+    if (user) return user;
+    await new Promise((resolve) => window.setTimeout(resolve, 250));
+  }
+  return null;
+}
+
 export async function signInCloud(email: string, password: string): Promise<CloudUser> {
   const client = await getClient();
   if (!client) throw new Error('المزامنة السحابية غير مهيأة');
@@ -113,7 +131,7 @@ export async function signInCloud(email: string, password: string): Promise<Clou
 export async function sendEmailOtp(email: string): Promise<void> {
   const client = await getClient();
   if (!client) throw new Error('المزامنة السحابية غير مهيأة');
-  const { error } = await client.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: `${window.location.origin}${window.location.pathname}`, shouldCreateUser: false } });
+  const { error } = await client.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: getOAuthRedirectUrl(window.location.origin, import.meta.env.BASE_URL, import.meta.env.VITE_SUPABASE_REDIRECT_URL), shouldCreateUser: false } });
   if (error) throw error;
 }
 
@@ -128,7 +146,7 @@ export async function verifyEmailOtp(email: string, token: string): Promise<Clou
 export async function signInWithGitHub(): Promise<void> {
   const client = await getClient();
   if (!client) throw new Error('المزامنة السحابية غير مهيأة');
-  const redirectTo = `${window.location.origin}${window.location.pathname}`;
+  const redirectTo = getOAuthRedirectUrl(window.location.origin, import.meta.env.BASE_URL, import.meta.env.VITE_SUPABASE_REDIRECT_URL);
   const { error } = await client.auth.signInWithOAuth({ provider: 'github', options: { redirectTo } });
   if (error) throw error;
 }
@@ -136,7 +154,7 @@ export async function signInWithGitHub(): Promise<void> {
 export async function signInWithGoogle(): Promise<void> {
   const client = await getClient();
   if (!client) throw new Error('المزامنة السحابية غير مهيأة');
-  const redirectTo = `${window.location.origin}${window.location.pathname}`;
+  const redirectTo = getOAuthRedirectUrl(window.location.origin, import.meta.env.BASE_URL, import.meta.env.VITE_SUPABASE_REDIRECT_URL);
   const { error } = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
   if (error) throw error;
 }
