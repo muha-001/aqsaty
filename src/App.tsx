@@ -1,6 +1,6 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
 import QRCode from 'qrcode';
-import { ArchiveRestore, Download, FileSignature, Eye, LogIn, MessageCircle, PackagePlus, Plus, Printer, Save, Search, Settings, ShieldCheck, Trash2, Upload, UsersRound, Wallet, X } from 'lucide-react';
+import { ArchiveRestore, Download, Eye, LogIn, MessageCircle, PackagePlus, Plus, Printer, Save, Search, Settings, ShieldCheck, Trash2, Upload, UsersRound, Wallet, X } from 'lucide-react';
 import { ContractCard } from './components/ContractCard';
 import { SecurityCenter } from './components/SecurityCenter';
 import { TrashPanel } from './components/TrashPanel';
