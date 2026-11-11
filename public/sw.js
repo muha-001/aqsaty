@@ -1,5 +1,5 @@
 /* global self, caches, fetch */
-const CACHE_NAME = 'aqsaty-shell-v2';
+const CACHE_NAME = 'aqsaty-shell-v3';
 const APP_SHELL = ['/aqsaty/', '/aqsaty/manifest.webmanifest', '/aqsaty/icon-192.svg', '/aqsaty/icon-512.svg'];
 
 self.addEventListener('install', (event) => {
