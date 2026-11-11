@@ -1991,3 +1991,97 @@ body {
 .bill-document .legal-document-footer { font-size: 8.5pt; margin-top: 16px; }.bill-document b { font-weight: 700; }
 @media print { .bill-document { margin: 0; } .bill-page { page-break-after: always; break-after: page; } .bill-page:last-child { page-break-after: auto; } body:has(.bill-document) { background: #fff; } }
 @media (max-width: 900px) { .bill-document, .bill-page { width: 100%; min-height: auto; } .bill-page { padding: 20px; } .bill-parties, .bill-parties.without-guarantor, .bill-signatures, .bill-signatures.without-guarantor { grid-template-columns: 1fr; } .bill-meta { grid-template-columns: 1fr; } }
+
+/* ============================================================
+   Responsive quality layer — Android / iPhone / Windows
+   يحافظ على التخطيط الحالي ويعالج اللمس، safe areas، والقراءة
+   ============================================================ */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior-x: none;
+}
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+  -webkit-overflow-scrolling: touch;
+}
+button, a, input, select, textarea { touch-action: manipulation; }
+button:disabled { cursor: not-allowed; }
+.field { width: 100%; min-width: 0; }
+.product-image { display: block; width: 100%; height: auto; object-fit: cover; }
+
+@media (min-width: 851px) {
+  .admin-layout { grid-template-columns: minmax(200px, 220px) minmax(0, 1fr); }
+  .admin-main { min-width: 0; }
+}
+
+@media (max-width: 850px) {
+  .hero-grid { gap: 28px; }
+  .hero-card { width: min(100%, 420px); margin-inline: auto; }
+  .admin-layout { width: 100%; }
+  .admin-card, .admin-main > .admin-title { min-width: 0; }
+}
+
+@media (max-width: 760px) {
+  .topline { padding-inline: 12px; font-size: 11px; line-height: 1.45; }
+  .header { top: env(safe-area-inset-top, 0px); }
+  .nav { min-height: 58px; gap: 8px; }
+  .brand small { display: none; }
+  .navlinks { flex: 1 1 auto; min-width: 0; justify-content: flex-start; }
+  .navlinks button { flex: 0 0 auto; min-height: 44px; }
+  .section { padding-block: 56px; }
+  .section-head { margin-bottom: 26px; }
+  .section-head h2 { font-size: clamp(25px, 7vw, 32px); }
+  .hero { min-height: auto; }
+  .hero h1 { font-size: clamp(32px, 9vw, 42px); }
+  .hero p { font-size: 15px; }
+  .actions, .row-actions { width: 100%; }
+  .actions > .btn, .row-actions > .btn { flex: 1 1 180px; min-height: 46px; }
+  .lookup, .admin-card, .hero-card { border-radius: 16px; }
+  .lookup, .admin-card { padding: 16px; }
+  .modal-backdrop { padding: max(8px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)); }
+  .modal { max-height: calc(100svh - 16px); padding: 16px; }
+  .modal-head { gap: 8px; }
+  .modal-head h2 { font-size: 18px; line-height: 1.35; }
+  .close { min-width: 44px; min-height: 44px; }
+  .side { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .side::-webkit-scrollbar { display: none; }
+  .side button { min-height: 44px; }
+  .admin-main > .admin-title { margin-inline: -2px; }
+  .admin-title { align-items: flex-start; flex-wrap: wrap; }
+  .admin-title .row-actions { margin-inline-start: 0; }
+  .stat { min-width: 0; padding: 12px 10px; }
+  .stat small, .stat b { overflow-wrap: anywhere; }
+  .field, select.field, textarea.field { min-height: 46px; font-size: 16px; }
+  textarea.field { min-height: 100px; }
+  .check { min-height: 44px; display: inline-flex; align-items: center; }
+  .product-buy { width: 100%; }
+  .footer { padding-inline: 15px; text-align: center; }
+}
+
+@media (max-width: 480px) {
+  .nav { padding-inline: 10px; }
+  .brand { gap: 7px; }
+  .brand strong { font-size: 17px; }
+  .navlinks button { padding-inline: 9px; font-size: 12px; }
+  .hero { padding-inline: 15px; }
+  .hero-card { padding: 20px; }
+  .summary-grid, .dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .summary-grid .stat { padding-inline: 8px; }
+  .summary-grid .stat b { font-size: 14px; }
+  .admin-layout { padding: 10px; }
+  .adminbar { padding-inline: 11px; }
+  .adminbar h2 { max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-sync-indicator { max-width: 100%; overflow-wrap: anywhere; }
+  .bill-page { padding: 16px 12px; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .btn, .side button, .navlinks button, .close, .product-clickable { min-height: 44px; }
+  .btn:active, button:active { transform: scale(.985); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topline, .hero h1 span, .hero-card::before, .eyebrow::before { animation: none !important; }
+}
