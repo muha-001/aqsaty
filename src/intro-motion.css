@@ -18,7 +18,7 @@
 .intro-line { width: 180px; height: 1px; margin-top: 17px; background: rgba(236,212,154,.22); overflow: hidden; }
 .intro-line span { display: block; height: 100%; background: #ecd49a; transform-origin: right; animation: intro-line 900ms 260ms cubic-bezier(.22,1,.36,1) both; }
 .intro-content p { margin: 13px 0 0; color: #d9e4ef; font-size: 13px; opacity: .82; }
-.intro-orbit { position: absolute; width: 48vw; aspect-ratio: 1; border: 1px solid rgba(236,212,154,.13); border-radius: 50%; animation: intro-orbit 12s linear infinite; }
+.intro-orbit { position: fixed; width: 48vw; aspect-ratio: 1; border: 1px solid rgba(236,212,154,.13); border-radius: 50%; animation: intro-orbit 12s linear infinite; }
 .orbit-one { transform: rotate(28deg) scaleY(.45); }
 .orbit-two { width: 70vw; transform: rotate(-42deg) scaleY(.3); animation-direction: reverse; }
 @keyframes intro-content-in { from { opacity: 0; transform: translate3d(0,18px,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
