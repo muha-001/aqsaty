@@ -1968,3 +1968,26 @@ body {
 .signature-grid,.witness-grid { margin-top:42px; text-align:center; }.signature-grid span,.witness-grid span { display:block; border-bottom:1px solid #172235; height:48px; margin:8px 18px; }
 .legal-document-footer { border-top:1px solid #bbc4d1; margin-top:34px; padding-top:12px; font-size:12px; color:#536172; }
 @media print { .promissory-note { max-width:none; padding:10mm; } .promissory-note .document-header { border-bottom:2px solid #172235; } }
+.form-section { border: 1px solid var(--line, #d8dee7); border-radius: 12px; padding: 14px; margin: 14px 0; }
+.form-section h3 { margin: 0 0 12px; color: var(--navy, #10253f); }
+.editable-installments { width: 100%; border-collapse: collapse; margin-top: 14px; }
+.editable-installments th, .editable-installments td { border: 1px solid #cbd3df; padding: 7px; text-align: right; }
+.bill-document { width: 210mm; margin: 0 auto; color: #111827; background: #fff; font-family: Tahoma, Arial, sans-serif; font-size: 11pt; line-height: 1.65; }
+.bill-page { box-sizing: border-box; width: 210mm; min-height: 297mm; padding: 16mm 17mm 15mm; position: relative; background: #fff; page-break-after: always; }
+.bill-page-two { padding-top: 18mm; }
+.bill-title { text-align: center; border-bottom: 2px solid #172235; padding-bottom: 8px; margin-bottom: 14px; }
+.bill-title h1 { font-size: 22pt; margin: 0 0 2px; }
+.bill-title p { margin: 0; color: #4b5563; font-size: 10pt; }
+.bill-meta { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #b8c1ce; margin-bottom: 16px; }
+.bill-meta span { padding: 6px 9px; border-bottom: 1px solid #d4dbe4; }.bill-meta span:nth-child(odd) { border-left: 1px solid #d4dbe4; }
+.bill-box, .bill-section { margin-top: 14px; }.bill-box { border: 1px solid #b8c1ce; padding: 10px 12px; }.bill-box h2, .bill-section h2, .bill-terms h2 { font-size: 13pt; margin: 0 0 8px; color: #172235; }
+.bill-parties { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; border-top: 1px solid #c5ceda; padding-top: 10px; }.bill-parties.without-guarantor { grid-template-columns: repeat(2, 1fr); }
+.bill-party { min-height: 126px; }.bill-party h3 { font-size: 10.5pt; margin: 0 0 7px; }.bill-party > div { margin: 2px 0; font-size: 9.5pt; }.party-signature { margin-top: 11px !important; }
+.bill-section p { text-align: justify; margin: 6px 0; }.bill-section ul { margin: 7px 0; padding-right: 22px; }
+.bill-schedule { width: 100%; border-collapse: collapse; margin-top: 7px; }.bill-schedule th { background: #172235; color: #fff; font-weight: 700; }.bill-schedule th, .bill-schedule td { border: 1px solid #bcc6d3; padding: 6px 5px; text-align: center; height: 25px; }.bill-schedule td:last-child { width: 30%; }
+.bill-footer { position: absolute; bottom: 8mm; right: 17mm; left: 17mm; border-top: 1px solid #d4dbe4; padding-top: 5px; color: #5b6470; font-size: 8.5pt; text-align: center; }
+.bill-terms { border-right: 4px solid #172235; background: #f1f5f9; padding: 12px 15px; }.bill-terms p { margin: 7px 0; text-align: justify; }.custom-terms { border-top: 1px solid #cbd5e1; padding-top: 7px; }
+.bill-signatures { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid #b8c1ce; margin-top: 18px; }.bill-signatures.without-guarantor { grid-template-columns: repeat(2, 1fr); }.bill-signatures > div { min-height: 125px; padding: 10px; text-align: center; border-left: 1px solid #b8c1ce; }.bill-signatures > div:last-child { border-left: 0; }.bill-signatures h3 { font-size: 10.5pt; margin: 0 0 15px; }
+.bill-document .legal-document-footer { font-size: 8.5pt; margin-top: 16px; }.bill-document b { font-weight: 700; }
+@media print { .bill-document { margin: 0; } .bill-page { page-break-after: always; break-after: page; } .bill-page:last-child { page-break-after: auto; } body:has(.bill-document) { background: #fff; } }
+@media (max-width: 900px) { .bill-document, .bill-page { width: 100%; min-height: auto; } .bill-page { padding: 20px; } .bill-parties, .bill-parties.without-guarantor, .bill-signatures, .bill-signatures.without-guarantor { grid-template-columns: 1fr; } .bill-meta { grid-template-columns: 1fr; } }
