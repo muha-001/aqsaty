@@ -7,6 +7,28 @@ export type CloudUser = { id: string; email?: string };
 export type PublicLookup = { customerName: string; contracts: Array<{ number: string; productName: string; status: string; financedAmount: number; schedule: Array<{ number: number; dueDate: string; amount: number; paidAmount: number }> }> };
 export type PublicContractVerification = { number: string; productName: string; status: string; financedAmount: number; months: number; startDate: string };
 export type SecurityContext = { role: WorkspaceRole; devices: DeviceSession[]; events: SecurityEvent[] };
+export type OAuthCallbackState = { hasCallback: boolean; error: string | null; errorDescription: string | null; code: string | null; key: string };
+
+export function getOAuthCallbackState(value: string | URL): OAuthCallbackState {
+  const url = typeof value === 'string' ? new URL(value) : value;
+  const query = new URLSearchParams(url.search);
+  const hash = new URLSearchParams(url.hash.startsWith('#') ? url.hash.slice(1) : url.hash);
+  const read = (name: string) => query.get(name) || hash.get(name);
+  const error = read('error');
+  const errorDescription = read('error_description');
+  const code = read('code');
+  return { hasCallback: Boolean(error || errorDescription || code), error, errorDescription, code, key: `${error || ''}|${errorDescription || ''}|${code || ''}` };
+}
+
+export function describeCloudAuthError(error: unknown): string {
+  const message = error instanceof Error ? error.message.trim() : String(error || '').trim();
+  const normalized = message.toLowerCase();
+  if (normalized.includes('failed to fetch') || normalized.includes('network') || normalized.includes('fetch')) return 'تعذر الاتصال بخدمة المصادقة السحابية؛ قد تكون الخدمة متوقفة مؤقتًا أو أن الاتصال غير متاح. حاول مجددًا بعد لحظات.';
+  if (normalized.includes('redirect') || normalized.includes('url')) return 'رابط العودة من تسجيل الدخول غير مسموح به. تأكد من إضافة https://muha-001.github.io/aqsaty/ في إعدادات Supabase.';
+  if (normalized.includes('access_denied') || normalized.includes('denied')) return 'تم إلغاء تسجيل الدخول أو رفضه من مزود الحساب.';
+  if (normalized.includes('invalid login credentials')) return 'بيانات الحساب غير صحيحة أو أن الحساب غير مسجل في مساحة العمل.';
+  return message || 'تعذر إكمال تسجيل الدخول السحابي. حاول مرة أخرى.';
+}
 
 function cloudPayload(database: Database): Database {
   return { ...database, products: database.products.map((product) => ({ ...product, images: [] })) };
@@ -18,7 +40,7 @@ export function mergeCloudDatabases(local: Database, cloud: Database): Database 
 type SupabaseSession = { user: { id: string; email?: string } } | null;
 type SupabaseClient = {
   auth: {
-    getUser: () => Promise<{ data: { user: { id: string; email?: string } | null } }>;
+    getUser: () => Promise<{ data: { user: { id: string; email?: string } | null }; error?: Error | null }>;
     getSession: () => Promise<{ data: { session: SupabaseSession } }>;
     signInWithPassword: (credentials: { email: string; password: string }) => Promise<{ data: { user: { id: string; email?: string } | null }; error: Error | null }>;
     signInWithOtp: (options: { email: string; options: { emailRedirectTo: string; shouldCreateUser: boolean } }) => Promise<{ error: Error | null }>;
@@ -106,14 +128,17 @@ export async function verifyPublicContract(contractNumber: string): Promise<Publ
 export async function getCloudUser(): Promise<CloudUser | null> {
   const client = await getClient();
   if (!client) return null;
-  const { data } = await client.auth.getUser();
+  const { data: sessionData } = await client.auth.getSession();
+  if (sessionData.session?.user) return sessionData.session.user;
+  const { data, error } = await client.auth.getUser();
+  if (error) return null;
   return data.user;
 }
 
-export async function waitForCloudUser(timeoutMs = 10000): Promise<CloudUser | null> {
+export async function waitForCloudUser(timeoutMs = 15000): Promise<CloudUser | null> {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
-    const user = await getCloudUser();
+    const user = await getCloudUser().catch(() => null);
     if (user) return user;
     await new Promise((resolve) => window.setTimeout(resolve, 250));
   }
@@ -148,7 +173,7 @@ export async function signInWithGitHub(): Promise<void> {
   if (!client) throw new Error('المزامنة السحابية غير مهيأة');
   const redirectTo = getOAuthRedirectUrl(window.location.origin, import.meta.env.BASE_URL, import.meta.env.VITE_SUPABASE_REDIRECT_URL);
   const { error } = await client.auth.signInWithOAuth({ provider: 'github', options: { redirectTo } });
-  if (error) throw error;
+  if (error) throw new Error(describeCloudAuthError(error));
 }
 
 export async function signInWithGoogle(): Promise<void> {
@@ -156,7 +181,7 @@ export async function signInWithGoogle(): Promise<void> {
   if (!client) throw new Error('المزامنة السحابية غير مهيأة');
   const redirectTo = getOAuthRedirectUrl(window.location.origin, import.meta.env.BASE_URL, import.meta.env.VITE_SUPABASE_REDIRECT_URL);
   const { error } = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
-  if (error) throw error;
+  if (error) throw new Error(describeCloudAuthError(error));
 }
 
 export async function signOutCloud(): Promise<void> {

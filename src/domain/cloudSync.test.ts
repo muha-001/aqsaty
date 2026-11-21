@@ -1,8 +1,34 @@
 import { describe, expect, it } from 'vitest';
-import { createLatestWriteQueue, getOAuthRedirectUrl, mergeCloudDatabases, serializeCloudPush } from './cloudSync';
+import { createLatestWriteQueue, describeCloudAuthError, getOAuthCallbackState, getOAuthRedirectUrl, mergeCloudDatabases, serializeCloudPush } from './cloudSync';
 import { emptyDatabase } from './store';
 
 describe('cloud synchronization queue', () => {
+  it('reads OAuth callback errors before the app falls back to a generic login failure', () => {
+    const callback = getOAuthCallbackState('https://muha-001.github.io/aqsaty/?error=access_denied&error_description=حساب%20غير%20مسموح');
+
+    expect(callback).toEqual({
+      hasCallback: true,
+      error: 'access_denied',
+      errorDescription: 'حساب غير مسموح',
+      code: null,
+      key: 'access_denied|حساب غير مسموح|',
+    });
+  });
+
+  it('keeps an OAuth code callback distinguishable from an ordinary page load', () => {
+    expect(getOAuthCallbackState('https://muha-001.github.io/aqsaty/?code=oauth-code')).toEqual({
+      hasCallback: true,
+      error: null,
+      errorDescription: null,
+      code: 'oauth-code',
+      key: '||oauth-code',
+    });
+  });
+
+  it('explains a paused cloud project instead of showing an opaque error', () => {
+    expect(describeCloudAuthError(new Error('Failed to fetch'))).toContain('متوقفة مؤقتًا');
+  });
+
   it('builds the GitHub Pages OAuth callback from the configured base path', () => {
     expect(getOAuthRedirectUrl('https://muha-001.github.io', '/aqsaty/')).toBe('https://muha-001.github.io/aqsaty/');
     expect(getOAuthRedirectUrl('http://localhost:5173', '/', 'https://muha-001.github.io/aqsaty/')).toBe('https://muha-001.github.io/aqsaty/');
