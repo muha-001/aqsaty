@@ -29,6 +29,10 @@ describe('cloud synchronization queue', () => {
     expect(describeCloudAuthError(new Error('Failed to fetch'))).toContain('متوقفة مؤقتًا');
   });
 
+  it('explains when a requested OAuth provider is disabled', () => {
+    expect(describeCloudAuthError(new Error('Unsupported provider: google'))).toContain('Google غير مفعّل');
+  });
+
   it('builds the GitHub Pages OAuth callback from the configured base path', () => {
     expect(getOAuthRedirectUrl('https://muha-001.github.io', '/aqsaty/')).toBe('https://muha-001.github.io/aqsaty/');
     expect(getOAuthRedirectUrl('http://localhost:5173', '/', 'https://muha-001.github.io/aqsaty/')).toBe('https://muha-001.github.io/aqsaty/');

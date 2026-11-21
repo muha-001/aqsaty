@@ -24,6 +24,9 @@ export function describeCloudAuthError(error: unknown): string {
   const message = error instanceof Error ? error.message.trim() : String(error || '').trim();
   const normalized = message.toLowerCase();
   if (normalized.includes('failed to fetch') || normalized.includes('network') || normalized.includes('fetch')) return 'تعذر الاتصال بخدمة المصادقة السحابية؛ قد تكون الخدمة متوقفة مؤقتًا أو أن الاتصال غير متاح. حاول مجددًا بعد لحظات.';
+  if (normalized.includes('unsupported provider') || normalized.includes('provider is not enabled') || normalized.includes('provider not enabled')) {
+    return normalized.includes('google') ? 'تسجيل الدخول عبر Google غير مفعّل في إعدادات الخدمة حاليًا.' : 'مزود تسجيل الدخول المطلوب غير مفعّل في إعدادات الخدمة حاليًا.';
+  }
   if (normalized.includes('redirect') || normalized.includes('url')) return 'رابط العودة من تسجيل الدخول غير مسموح به. تأكد من إضافة https://muha-001.github.io/aqsaty/ في إعدادات Supabase.';
   if (normalized.includes('access_denied') || normalized.includes('denied')) return 'تم إلغاء تسجيل الدخول أو رفضه من مزود الحساب.';
   if (normalized.includes('invalid login credentials')) return 'بيانات الحساب غير صحيحة أو أن الحساب غير مسجل في مساحة العمل.';
